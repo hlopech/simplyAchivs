@@ -7,5 +7,6 @@ sealed class GoalUiState {
     object Loading : GoalUiState()
     data class ShowActiveGoals(val goals: List<Goal>) : GoalUiState()
     data class ShowCompletedGoals(val goals: List<Goal>) : GoalUiState()
-    object WithoutGoals : GoalUiState()
+    object WithoutActiveGoals : GoalUiState()
+    object WithoutCompletedGoals : GoalUiState()
 }

@@ -5,12 +5,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.example.simplyachivs.presentation.shop.addAward.AddAwardScreen
-import com.example.simplyachivs.presentation.goal.addGoal.AddTargetScreen
+import com.example.simplyachivs.presentation.goal.addGoal.AddGoalScreen
 import com.example.simplyachivs.DetailTaskScreen
 import com.example.simplyachivs.presentation.home.HomeScreen
 import com.example.simplyachivs.presentation.profile.ProfileScreen
 import com.example.simplyachivs.presentation.shop.ShopScreen
-import com.example.simplyachivs.presentation.goal.TargetScreen
+import com.example.simplyachivs.presentation.goal.GoalScreen
+import com.example.simplyachivs.presentation.goal.goalDetails.GoalDetails
 
 @Composable
 fun AppNavHost(appState: AppState) {
@@ -32,20 +33,31 @@ fun AppNavHost(appState: AppState) {
                 onBack = { navController.navigateUp() }
             )
         }
+
+        composable<GoalDetails> { entry ->
+            val args: GoalDetails = entry.toRoute()
+            GoalDetails(goalId = args.goalId,
+                onBack = { navController.navigateUp() }
+                )
+
+        }
         composable<Shop> {
             ShopScreen(onAddAward = { navController.navigate(AddAward) })
         }
         composable<Profile> {
-            ProfileScreen()
+            ProfileScreen(
+                onBack = { navController.navigateUp() },
+            )
         }
 
         composable<Target> {
-            TargetScreen(
+            GoalScreen(
                 onAddNewTarget = { navController.navigate(AddTarget) },
+                onOpenGoal = { navController.navigate(GoalDetails(it)) },
             )
         }
         composable<AddTarget> {
-            AddTargetScreen(
+            AddGoalScreen(
                 onBack = { navController.navigateUp() },
                 onAddTarget = { navController.navigate(Target) }
             )
@@ -53,7 +65,7 @@ fun AppNavHost(appState: AppState) {
         composable<AddAward> {
             AddAwardScreen(
                 onBack = { navController.navigateUp() },
-                onAddAward={navController.navigate(Shop)}
+                onAddAward = { navController.navigate(Shop) }
             )
         }
 

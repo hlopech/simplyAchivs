@@ -54,7 +54,7 @@ import com.example.simplyachivs.ui.theme.Purple40
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddTargetScreen(onBack: () -> Unit, onAddTarget: () -> Unit) {
+fun AddGoalScreen(onBack: () -> Unit, onAddTarget: () -> Unit) {
 
     val targetName = remember { mutableStateOf("") }
 

@@ -16,27 +16,57 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.simplyachivs.R
+import com.example.simplyachivs.presentation.components.EditUserProfile
 import com.example.simplyachivs.presentation.components.ProfileInfoSection
 import com.example.simplyachivs.presentation.components.ProfileOptions
 import com.example.simplyachivs.ui.theme.MainBlue
+import kotlinx.coroutines.flow.collectLatest
 
-@Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(onBack: () -> Unit) {
+
+    val viewModel: ProfileViewModel = viewModel()
+
+    val state = viewModel.state.collectAsStateWithLifecycle()
+
+    var showDialog by remember {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collectLatest { effect ->
+            when (effect) {
+                ProfileEffect.GoBack -> onBack()
+                ProfileEffect.HideDialog -> showDialog = false
+                is ProfileEffect.NavigateToOption -> TODO()
+                is ProfileEffect.ShowError -> TODO()
+                is ProfileEffect.ShowDialog -> showDialog = true
+
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 expandedHeight = 50.dp, title = {
                     Text("Профиль")
                 }, navigationIcon = {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { viewModel.processIntent(ProfileIntent.GoBack) }) {
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowLeft,
                             contentDescription = "",
@@ -46,7 +76,7 @@ fun ProfileScreen() {
                     }
                 },
                 actions = {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { viewModel.processIntent(ProfileIntent.OpenEditDialog) }) {
                         Icon(
                             painter = painterResource(R.drawable.draw_icon),
                             contentDescription = "",
@@ -62,10 +92,19 @@ fun ProfileScreen() {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
-                .fillMaxWidth().fillMaxHeight()
+                .fillMaxWidth()
+                .fillMaxHeight()
                 .padding(top = paddingValues.calculateTopPadding(), bottom = 100.dp)
-//                .verticalScroll(rememberScrollState(), true)
         ) {
+            if (showDialog) {
+                EditUserProfile(
+                    currentName = "Никита",
+                    onDismiss = { viewModel.processIntent(ProfileIntent.CloseEditDialog) },
+                    onConfirm = { newName, newPhoto ->
+                        viewModel.processIntent(ProfileIntent.ConfirmEdition(newName, newPhoto))
+                    }
+                )
+            }
             ProfileInfoSection()
             Spacer(Modifier.height(0.dp))
             ProfileOptions(listOf(1, 2, 3, 4))

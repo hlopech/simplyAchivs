@@ -6,7 +6,8 @@ import com.example.simplyachivs.domain.model.user.UserProgress
 data class ProfileUiState(
     val user: User? = null,
     val loading: Boolean = false,
-    val progress: UserProgress,
+    val progress: UserProgress?=null,
     val error: String? = null
+
 
 )
