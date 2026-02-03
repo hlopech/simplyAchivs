@@ -1,4 +1,4 @@
-package com.example.simplyachivs.components
+package com.example.simplyachivs.presentation.components
 
 import android.graphics.drawable.Icon
 import android.text.Layout

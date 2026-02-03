@@ -1,4 +1,4 @@
-package com.example.simplyachivs
+package com.example.simplyachivs.presentation.shop.addAward
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
@@ -17,8 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -44,15 +42,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.simplyachivs.components.MainButton
+import com.example.simplyachivs.R
+import com.example.simplyachivs.presentation.components.MainButton
 import com.example.simplyachivs.ui.theme.CoinColor
 import com.example.simplyachivs.ui.theme.DarkGreen
 import com.example.simplyachivs.ui.theme.LightGray
 import com.example.simplyachivs.ui.theme.MainBlue
-import com.example.simplyachivs.ui.theme.MainBlueLight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

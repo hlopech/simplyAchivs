@@ -1,4 +1,4 @@
-package com.example.simplyachivs.components
+package com.example.simplyachivs.presentation.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

@@ -1,16 +1,16 @@
-package com.example.simplyachivs.navigation
+package com.example.simplyachivs.presentation.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.example.simplyachivs.AddAwardScreen
-import com.example.simplyachivs.AddTargetScreen
+import com.example.simplyachivs.presentation.shop.addAward.AddAwardScreen
+import com.example.simplyachivs.presentation.goal.addGoal.AddTargetScreen
 import com.example.simplyachivs.DetailTaskScreen
-import com.example.simplyachivs.HomeScreen
-import com.example.simplyachivs.ProfileScreen
-import com.example.simplyachivs.ShopScreen
-import com.example.simplyachivs.TargetScreen
+import com.example.simplyachivs.presentation.home.HomeScreen
+import com.example.simplyachivs.presentation.profile.ProfileScreen
+import com.example.simplyachivs.presentation.shop.ShopScreen
+import com.example.simplyachivs.presentation.goal.TargetScreen
 
 @Composable
 fun AppNavHost(appState: AppState) {

@@ -1,4 +1,4 @@
-package com.example.simplyachivs
+package com.example.simplyachivs.presentation.goal.addGoal
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -44,10 +44,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.simplyachivs.R
 import com.example.simplyachivs.ui.theme.CoinColor
 import com.example.simplyachivs.ui.theme.DarkGreen
 import com.example.simplyachivs.ui.theme.LightGray
-import com.example.simplyachivs.ui.theme.LightGreen
 import com.example.simplyachivs.ui.theme.MainBlue
 import com.example.simplyachivs.ui.theme.MainBlueLight
 import com.example.simplyachivs.ui.theme.Purple40

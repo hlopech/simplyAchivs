@@ -1,4 +1,4 @@
-package com.example.simplyachivs.navigation
+package com.example.simplyachivs.presentation.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable

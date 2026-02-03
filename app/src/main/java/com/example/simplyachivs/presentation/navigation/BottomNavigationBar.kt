@@ -1,4 +1,4 @@
-package com.example.simplyachivs.navigation
+package com.example.simplyachivs.presentation.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
