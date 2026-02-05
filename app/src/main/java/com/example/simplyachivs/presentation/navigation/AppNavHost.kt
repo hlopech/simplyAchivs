@@ -59,7 +59,6 @@ fun AppNavHost(appState: AppState) {
         composable<AddTarget> {
             AddGoalScreen(
                 onBack = { navController.navigateUp() },
-                onAddTarget = { navController.navigate(Target) }
             )
         }
         composable<AddAward> {

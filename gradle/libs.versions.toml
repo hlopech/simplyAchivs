@@ -1,4 +1,5 @@
 [versions]
+accompanistReorderable = "0.34.0"
 agp = "8.13.2"
 kotlin = "2.0.21"
 coreKtx = "1.10.1"
@@ -12,8 +13,10 @@ navigationRuntimeKtx = "2.9.6"
 navigationCompose = "2.9.6"
 kotlinxSerializationJson = "1.6.3"
 coil = "2.5.0"
+reorderable = "0.9.6"
 
 [libraries]
+accompanist-reorderable = { module = "com.google.accompanist:accompanist-reorderable", version.ref = "accompanistReorderable" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -32,6 +35,7 @@ androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-te
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+reorderable = { module = "org.burnoutcrew:reorderable", version.ref = "reorderable" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
