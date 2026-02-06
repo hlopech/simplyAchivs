@@ -21,8 +21,6 @@ fun AppNavHost(appState: AppState) {
     NavHost(navController = navController, startDestination = Home) {
         composable<Home> {
             HomeScreen(
-                onAddTask = { navController.navigate(AddTask) },
-                onOpenTask = { navController.navigate(DetailTask(it)) },
                 onOpenProfile = { navController.navigate((Profile)) })
         }
 
@@ -63,8 +61,7 @@ fun AppNavHost(appState: AppState) {
         }
         composable<AddAward> {
             AddAwardScreen(
-                onBack = { navController.navigateUp() },
-                onAddAward = { navController.navigate(Shop) }
+                onBack = { navController.navigate(Shop) }
             )
         }
 

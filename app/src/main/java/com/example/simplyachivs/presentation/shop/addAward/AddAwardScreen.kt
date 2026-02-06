@@ -28,6 +28,7 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -44,31 +45,43 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.simplyachivs.R
 import com.example.simplyachivs.presentation.components.MainButton
 import com.example.simplyachivs.ui.theme.CoinColor
 import com.example.simplyachivs.ui.theme.DarkGreen
 import com.example.simplyachivs.ui.theme.LightGray
 import com.example.simplyachivs.ui.theme.MainBlue
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddAwardScreen(onBack:()->Unit,onAddAward:()->Unit) {
+fun AddAwardScreen(onBack: () -> Unit) {
 
-    val awardName = remember { mutableStateOf("") }
+    val viewModel: AddAwardViewModel = viewModel()
+    val state = viewModel.state.collectAsStateWithLifecycle()
+
 
     val min = 1
     val max = 9999
 
-    var value by remember { mutableIntStateOf(1) }
-    var text by remember { mutableStateOf(value.toString()) }
+    LaunchedEffect(Unit) {
+        viewModel.effect.collectLatest { effect ->
+            when (effect) {
+                AddAwardEffect.NavigateToAwards -> onBack()
+                is AddAwardEffect.ShowError -> TODO()
+            }
+        }
+    }
+
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(expandedHeight = 50.dp, title = {
                 Text("Новая награда")
             }, navigationIcon = {
-                IconButton(onClick = { onBack()}) {
+                IconButton(onClick = { onBack() }) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowLeft,
                         contentDescription = "",
@@ -77,7 +90,7 @@ fun AddAwardScreen(onBack:()->Unit,onAddAward:()->Unit) {
                     )
                 }
             }, actions = {
-                IconButton(onClick = { onAddAward()}) {
+                IconButton(onClick = { viewModel.processIntent(AddAwardIntent.AddNewAward) }) {
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = "",
@@ -136,8 +149,8 @@ fun AddAwardScreen(onBack:()->Unit,onAddAward:()->Unit) {
                     )
                 }
                 OutlinedTextField(
-                    value = awardName.value,
-                    onValueChange = { awardName.value = it },
+                    value = state.value.awardName,
+                    onValueChange = { viewModel.processIntent(AddAwardIntent.ChangeAwardName(it)) },
                     placeholder = {
                         Text(
                             "Введите название...", style = TextStyle(
@@ -181,8 +194,14 @@ fun AddAwardScreen(onBack:()->Unit,onAddAward:()->Unit) {
                     )
                 }
                 OutlinedTextField(
-                    value = awardName.value,
-                    onValueChange = { awardName.value = it },
+                    value = state.value.awardDescription,
+                    onValueChange = {
+                        viewModel.processIntent(
+                            AddAwardIntent.ChangeAwardDescription(
+                                it
+                            )
+                        )
+                    },
                     placeholder = {
                         Text(
                             "Добавьте описание (необязательно)", style = TextStyle(
@@ -231,7 +250,7 @@ fun AddAwardScreen(onBack:()->Unit,onAddAward:()->Unit) {
 
                 Column(modifier = Modifier) {
                     Slider(
-                        value = value.toFloat(),
+                        value = state.value.price.toFloat(),
                         colors = SliderDefaults.colors(
                             thumbColor = MainBlue,
                             activeTrackColor = MainBlue,
@@ -239,22 +258,30 @@ fun AddAwardScreen(onBack:()->Unit,onAddAward:()->Unit) {
 
                             ),
                         onValueChange = { v ->
-                            value = v.toInt().coerceIn(min, max)
-                            text = value.toString()
+                            viewModel.processIntent(
+                                AddAwardIntent.ChangeAwardPriceSlider(
+                                    v.toInt().coerceIn(min, max)
+                                )
+                            )
                         },
                         valueRange = min.toFloat()..max.toFloat(),
-                        // steps можно не задавать — будет плавный, но мы всё равно округляем toInt()
                     )
 
 
 
                     OutlinedTextField(
-                        value = text,
-                        onValueChange = { new ->
-                            text = new.filter { it.isDigit() }.take(4) // 1..9999
-                            val parsed = text.toIntOrNull()
-                            if (parsed != null) value = parsed.coerceIn(min, max)
-                        }, placeholder = {
+                        value = state.value.price.toString(),
+                        onValueChange = {
+                            viewModel.processIntent(
+                                AddAwardIntent.ChangeAwardPrice(
+                                    it.toInt().coerceIn(
+                                        min,
+                                        max
+                                    )
+                                )
+                            )
+                        },
+                        placeholder = {
                             Text(
                                 "Введите название...", style = TextStyle(
                                     fontWeight = FontWeight(400),
@@ -285,7 +312,7 @@ fun AddAwardScreen(onBack:()->Unit,onAddAward:()->Unit) {
             MainButton(
                 MainBlue,
                 Color.White,
-                {onAddAward() },
+                { viewModel.processIntent(AddAwardIntent.AddNewAward) },
                 "Добавить награду",
                 Icons.Default.Add,
             )

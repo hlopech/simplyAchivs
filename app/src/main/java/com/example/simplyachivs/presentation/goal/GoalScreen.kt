@@ -35,7 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.simplyachivs.R
 import com.example.simplyachivs.presentation.components.MainButton
-import com.example.simplyachivs.presentation.components.TargetCard
+import com.example.simplyachivs.presentation.components.GoalCard
 import com.example.simplyachivs.ui.theme.LightGray
 import com.example.simplyachivs.ui.theme.MainBlue
 import kotlinx.coroutines.flow.collectLatest
@@ -180,7 +180,7 @@ fun GoalScreen(onAddNewTarget: () -> Unit, onOpenGoal: (goalId: String) -> Unit)
 
                     }
                     items(listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 10)) { it ->
-                        TargetCard({ viewModel.processIntent(GoalIntent.OpenGoalDetails(it.toString())) })
+                        GoalCard({ viewModel.processIntent(GoalIntent.OpenGoalDetails(it.toString())) })
                     }
                 }
             }
@@ -192,7 +192,7 @@ fun GoalScreen(onAddNewTarget: () -> Unit, onOpenGoal: (goalId: String) -> Unit)
                     contentPadding = PaddingValues(bottom = 100.dp)
                 ) {
                     items(listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 10)) {
-                        TargetCard({})
+                        GoalCard({})
                     }
                 }
             }
