@@ -15,5 +15,6 @@ data class AddGoalUiState(
     val error: AddGoalError? = null,
     val complexity: GoalComplexity? = null,
     val goalImage: Uri? = null,
-
-    )
+    val goalNameError: String? = null,
+    val newStepNameError: String? = null,
+)

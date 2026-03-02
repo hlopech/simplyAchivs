@@ -6,4 +6,5 @@ sealed interface ProfileEffect {
     data class NavigateToOption(val optionId: Int) : ProfileEffect
     object ShowDialog: ProfileEffect
     object HideDialog: ProfileEffect
+    object NavigateToSettings : ProfileEffect
 }

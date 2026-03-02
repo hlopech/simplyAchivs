@@ -1,6 +1,7 @@
 package com.example.simplyachivs.presentation.shop.addAward
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -45,6 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.simplyachivs.R
@@ -59,7 +61,7 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun AddAwardScreen(onBack: () -> Unit) {
 
-    val viewModel: AddAwardViewModel = viewModel()
+    val viewModel: AddAwardViewModel = hiltViewModel()
     val state = viewModel.state.collectAsStateWithLifecycle()
 
 
@@ -148,6 +150,7 @@ fun AddAwardScreen(onBack: () -> Unit) {
                         )
                     )
                 }
+                val awardNameError = state.value.awardNameError
                 OutlinedTextField(
                     value = state.value.awardName,
                     onValueChange = { viewModel.processIntent(AddAwardIntent.ChangeAwardName(it)) },
@@ -158,16 +161,35 @@ fun AddAwardScreen(onBack: () -> Unit) {
                             )
                         )
                     },
+                    isError = awardNameError != null,
+                    supportingText = {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            if (awardNameError != null) {
+                                Text(text = awardNameError, color = Color.Red, fontSize = 13.sp)
+                            } else {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                            Text(
+                                text = "${state.value.awardName.length}/50",
+                                color = if (state.value.awardName.length >= 45) Color.Red else Color.Gray,
+                                fontSize = 13.sp
+                            )
+                        }
+                    },
                     modifier = Modifier
-                        .height(70.dp)
-                        .padding(vertical = 10.dp)
+                        .padding(vertical = 4.dp)
                         .fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     colors = TextFieldDefaults.colors(
                         unfocusedIndicatorColor = LightGray,
                         focusedIndicatorColor = MainBlue,
                         unfocusedContainerColor = Color.White,
-                        focusedContainerColor = Color.White
+                        focusedContainerColor = Color.White,
+                        errorIndicatorColor = Color.Red,
+                        errorContainerColor = Color.White
                     )
                 )
             }
@@ -196,11 +218,7 @@ fun AddAwardScreen(onBack: () -> Unit) {
                 OutlinedTextField(
                     value = state.value.awardDescription,
                     onValueChange = {
-                        viewModel.processIntent(
-                            AddAwardIntent.ChangeAwardDescription(
-                                it
-                            )
-                        )
+                        viewModel.processIntent(AddAwardIntent.ChangeAwardDescription(it))
                     },
                     placeholder = {
                         Text(
@@ -209,9 +227,16 @@ fun AddAwardScreen(onBack: () -> Unit) {
                             )
                         )
                     },
+                    supportingText = {
+                        Text(
+                            text = "${state.value.awardDescription.length}/200",
+                            color = if (state.value.awardDescription.length >= 180) Color.Red else Color.Gray,
+                            fontSize = 13.sp,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    },
                     modifier = Modifier
-                        .height(70.dp)
-                        .padding(vertical = 10.dp)
+                        .padding(vertical = 4.dp)
                         .fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     colors = TextFieldDefaults.colors(
@@ -269,38 +294,40 @@ fun AddAwardScreen(onBack: () -> Unit) {
 
 
 
+                    val priceError = state.value.priceError
                     OutlinedTextField(
                         value = state.value.price.toString(),
-                        onValueChange = {
+                        onValueChange = { text ->
+                            val parsed = text.filter { it.isDigit() }.toIntOrNull() ?: 0
                             viewModel.processIntent(
-                                AddAwardIntent.ChangeAwardPrice(
-                                    it.toInt().coerceIn(
-                                        min,
-                                        max
-                                    )
-                                )
+                                AddAwardIntent.ChangeAwardPrice(parsed.coerceIn(0, max))
                             )
                         },
                         placeholder = {
                             Text(
-                                "Введите название...", style = TextStyle(
+                                "Введите стоимость...", style = TextStyle(
                                     fontWeight = FontWeight(400),
                                     fontSize = 18.sp,
                                     color = Color.Gray
                                 )
                             )
                         },
+                        isError = priceError != null,
+                        supportingText = if (priceError != null) {
+                            { Text(text = priceError, color = Color.Red, fontSize = 13.sp) }
+                        } else null,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier
-                            .height(70.dp)
-                            .padding(vertical = 10.dp)
+                            .padding(vertical = 4.dp)
                             .fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         colors = TextFieldDefaults.colors(
                             unfocusedIndicatorColor = LightGray,
                             focusedIndicatorColor = MainBlue,
                             unfocusedContainerColor = Color.White,
-                            focusedContainerColor = Color.White
+                            focusedContainerColor = Color.White,
+                            errorIndicatorColor = Color.Red,
+                            errorContainerColor = Color.White
                         )
                     )
 

@@ -2,24 +2,28 @@ package com.example.simplyachivs.presentation.goal
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.simplyachivs.domain.model.goal.Goal
+import com.example.simplyachivs.domain.usecase.goal.GetActiveGoalUseCase
+import com.example.simplyachivs.domain.usecase.goal.GetCompletedGoalsUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class GoalViewModel : ViewModel() {
+@HiltViewModel
+class GoalViewModel @Inject constructor(
+    private val getActiveGoalUseCase: GetActiveGoalUseCase,
+    private val getCompletedGoalsUseCase: GetCompletedGoalsUseCase,
+) : ViewModel() {
     private val _uiState = MutableStateFlow<GoalUiState>(GoalUiState.ShowActiveGoals(emptyList()))
     val uiState = _uiState.asStateFlow()
 
     private val _effect = MutableSharedFlow<GoalEffect>(replay = 0, extraBufferCapacity = 1)
     val effect = _effect.asSharedFlow()
-
-//    private val repository = GoalRepository
 
     fun processIntent(intent: GoalIntent) {
 

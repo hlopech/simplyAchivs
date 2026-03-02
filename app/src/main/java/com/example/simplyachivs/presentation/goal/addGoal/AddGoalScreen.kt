@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -66,6 +67,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
@@ -88,7 +90,7 @@ import org.burnoutcrew.reorderable.reorderable
 @Composable
 fun AddGoalScreen(onBack: () -> Unit) {
 
-    val viewModel: AddGoalViewModel = viewModel()
+    val viewModel: AddGoalViewModel = hiltViewModel()
     val state = viewModel.state.collectAsStateWithLifecycle()
 
 
@@ -258,6 +260,7 @@ fun AddGoalScreen(onBack: () -> Unit) {
                             )
                         )
                     }
+                    val goalNameError = state.value.goalNameError
                     OutlinedTextField(
                         value = state.value.goalName,
                         onValueChange = { viewModel.processIntent(AddGoalIntent.ChangeGoalName(it)) },
@@ -270,16 +273,35 @@ fun AddGoalScreen(onBack: () -> Unit) {
                                 )
                             )
                         },
+                        isError = goalNameError != null,
+                        supportingText = {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                if (goalNameError != null) {
+                                    Text(text = goalNameError, color = Color.Red, fontSize = 13.sp)
+                                } else {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
+                                Text(
+                                    text = "${state.value.goalName.length}/50",
+                                    color = if (state.value.goalName.length >= 45) Color.Red else Color.Gray,
+                                    fontSize = 13.sp
+                                )
+                            }
+                        },
                         modifier = Modifier
-                            .height(70.dp)
-                            .padding(vertical = 10.dp)
+                            .padding(vertical = 4.dp)
                             .fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         colors = TextFieldDefaults.colors(
                             unfocusedIndicatorColor = LightGray,
                             focusedIndicatorColor = MainBlue,
                             unfocusedContainerColor = Color.White,
-                            focusedContainerColor = Color.White
+                            focusedContainerColor = Color.White,
+                            errorIndicatorColor = Color.Red,
+                            errorContainerColor = Color.White
                         )
                     )
                 }
@@ -310,11 +332,7 @@ fun AddGoalScreen(onBack: () -> Unit) {
                     OutlinedTextField(
                         value = state.value.goalDescription,
                         onValueChange = {
-                            viewModel.processIntent(
-                                AddGoalIntent.ChangeGoalDescription(
-                                    it
-                                )
-                            )
+                            viewModel.processIntent(AddGoalIntent.ChangeGoalDescription(it))
                         },
                         placeholder = {
                             Text(
@@ -325,9 +343,16 @@ fun AddGoalScreen(onBack: () -> Unit) {
                                 )
                             )
                         },
+                        supportingText = {
+                            Text(
+                                text = "${state.value.goalDescription.length}/200",
+                                color = if (state.value.goalDescription.length >= 180) Color.Red else Color.Gray,
+                                fontSize = 13.sp,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        },
                         modifier = Modifier
-                            .height(70.dp)
-                            .padding(vertical = 10.dp)
+                            .padding(vertical = 4.dp)
                             .fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         colors = TextFieldDefaults.colors(
@@ -366,16 +391,17 @@ fun AddGoalScreen(onBack: () -> Unit) {
                     }
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
-
+                        val stepError = state.value.newStepNameError
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .background(Color.White)
-                                .border(1.dp, Color.LightGray, RoundedCornerShape(10.dp))
-
+                                .border(
+                                    1.dp,
+                                    if (stepError != null) Color.Red else Color.LightGray,
+                                    RoundedCornerShape(10.dp)
+                                )
                         ) {
-
                             Text(
                                 "${state.value.steps.size + 1} шаг", style = TextStyle(
                                     fontWeight = FontWeight(900),
@@ -390,9 +416,7 @@ fun AddGoalScreen(onBack: () -> Unit) {
                                 trailingIcon = {
                                     IconButton(onClick = {
                                         viewModel.processIntent(
-                                            AddGoalIntent.AddNewStep(
-                                                state.value.newStepName
-                                            )
+                                            AddGoalIntent.AddNewStep(state.value.newStepName)
                                         )
                                     }) {
                                         Icon(
@@ -404,11 +428,7 @@ fun AddGoalScreen(onBack: () -> Unit) {
                                     }
                                 },
                                 onValueChange = {
-                                    viewModel.processIntent(
-                                        AddGoalIntent.ChangeNewStepName(
-                                            it
-                                        )
-                                    )
+                                    viewModel.processIntent(AddGoalIntent.ChangeNewStepName(it))
                                 },
                                 placeholder = {
                                     Text(
@@ -430,8 +450,17 @@ fun AddGoalScreen(onBack: () -> Unit) {
                                     disabledIndicatorColor = Color.Transparent,
                                     unfocusedContainerColor = Color.White,
                                     focusedContainerColor = Color.White,
-
-                                    )
+                                )
+                            )
+                        }
+                        if (stepError != null) {
+                            Text(
+                                text = stepError,
+                                color = Color.Red,
+                                fontSize = 13.sp,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 4.dp, top = 2.dp)
                             )
                         }
                     }

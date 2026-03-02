@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.simplyachivs.domain.model.goal.Step
 import com.example.simplyachivs.domain.model.goal.StepStatus
+import com.example.simplyachivs.domain.usecase.goal.AddGoalUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -11,9 +13,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
-import kotlin.collections.map
+import javax.inject.Inject
 
-class AddGoalViewModel : ViewModel() {
+@HiltViewModel
+class AddGoalViewModel @Inject constructor(
+    private val addGoalUseCase: AddGoalUseCase,
+) : ViewModel() {
 
     private val _state = MutableStateFlow<AddGoalUiState>(AddGoalUiState())
     val state = _state.asStateFlow()
@@ -54,29 +59,49 @@ class AddGoalViewModel : ViewModel() {
             AddGoalIntent.GoBack -> sendEffect(AddGoalEffect.NavigateToGoals)
             AddGoalIntent.OpenImagePicker -> sendEffect(AddGoalEffect.LaunchImagePicker)
             AddGoalIntent.AddNewGoal -> {
-
-                //addition goal logic
+                val name = _state.value.goalName.trim()
+                val nameError = when {
+                    name.isBlank() -> "Введите название цели"
+                    name.length < 3 -> "Название должно быть не менее 3 символов"
+                    else -> null
+                }
+                if (nameError != null) {
+                    _state.update { it.copy(goalNameError = nameError) }
+                    return
+                }
+                _state.update { it.copy(goalNameError = null) }
                 sendEffect(AddGoalEffect.NavigateToGoals)
-
             }
 
             is AddGoalIntent.AddNewStep -> {
-
+                val stepName = intent.stepName.trim()
+                val stepError = when {
+                    stepName.isBlank() -> "Введите название шага"
+                    stepName.length < 2 -> "Минимум 2 символа"
+                    else -> null
+                }
+                if (stepError != null) {
+                    _state.update { it.copy(newStepNameError = stepError) }
+                    return
+                }
                 _state.update {
                     it.copy(
+                        newStepNameError = null,
                         steps = it.steps + Step(
                             UUID.randomUUID(),
                             _state.value.id!!,
-                            intent.stepName,
+                            stepName,
                             StepStatus.ACTIVE,
                             _state.value.steps.size + 1
-                        ), newStepName = ""
+                        ),
+                        newStepName = ""
                     )
                 }
-
             }
 
-            is AddGoalIntent.ChangeNewStepName -> _state.update { it.copy(newStepName = intent.name) }
+            is AddGoalIntent.ChangeNewStepName -> _state.update {
+                it.copy(newStepName = intent.name.take(50), newStepNameError = null)
+            }
             is AddGoalIntent.SelectGoalComplexity -> {
                 _state.update { it.copy(complexity = intent.complexity) }
                 viewModelScope.launch {
@@ -84,8 +109,12 @@ class AddGoalViewModel : ViewModel() {
                 }
             }
 
-            is AddGoalIntent.ChangeGoalDescription -> _state.update { it.copy(goalDescription = intent.description) }
-            is AddGoalIntent.ChangeGoalName -> _state.update { it.copy(goalName = intent.name) }
+            is AddGoalIntent.ChangeGoalDescription -> _state.update {
+                it.copy(goalDescription = intent.description.take(200))
+            }
+            is AddGoalIntent.ChangeGoalName -> _state.update {
+                it.copy(goalName = intent.name.take(50), goalNameError = null)
+            }
             is AddGoalIntent.DeleteStep -> {
 
                 _state.update {

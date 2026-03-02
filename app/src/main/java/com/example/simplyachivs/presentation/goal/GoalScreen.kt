@@ -31,6 +31,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.simplyachivs.R
@@ -43,7 +44,7 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun GoalScreen(onAddNewTarget: () -> Unit, onOpenGoal: (goalId: String) -> Unit) {
 
-    val viewModel: GoalViewModel = viewModel()
+    val viewModel: GoalViewModel = hiltViewModel()
     val state = viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {

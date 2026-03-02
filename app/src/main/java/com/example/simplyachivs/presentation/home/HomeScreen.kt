@@ -63,6 +63,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.simplyachivs.R
@@ -84,7 +85,7 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun HomeScreen(onOpenProfile: () -> Unit) {
 
-    val viewModel: HomeViewModel = viewModel()
+    val viewModel: HomeViewModel = hiltViewModel()
     val state = viewModel.state.collectAsStateWithLifecycle()
 
     val hasNewMessage = remember { mutableStateOf(true) }
@@ -99,7 +100,7 @@ fun HomeScreen(onOpenProfile: () -> Unit) {
 
     val animatedProgress by animateFloatAsState(
         targetValue = targetProgress,
-        animationSpec = tween(durationMillis = 500) // можешь настроить скорость
+        animationSpec = tween(durationMillis = 500)
     )
 
     LaunchedEffect(Unit) {
@@ -148,8 +149,10 @@ fun HomeScreen(onOpenProfile: () -> Unit) {
                             )
                         )
                     }
+                    val taskName = state.value.newTask?.name.orEmpty()
+                    val nameError = state.value.taskNameError
                     OutlinedTextField(
-                        value = "${state.value.newTask?.name}",
+                        value = taskName,
                         onValueChange = { viewModel.processIntent(HomeIntent.ChangeTaskName(it)) },
                         placeholder = {
                             Text(
@@ -160,16 +163,39 @@ fun HomeScreen(onOpenProfile: () -> Unit) {
                                 )
                             )
                         },
+                        isError = nameError != null,
+                        supportingText = {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                if (nameError != null) {
+                                    Text(
+                                        text = nameError,
+                                        color = Color.Red,
+                                        fontSize = 13.sp
+                                    )
+                                } else {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
+                                Text(
+                                    text = "${taskName.length}/50",
+                                    color = if (taskName.length >= 45) Color.Red else Color.Gray,
+                                    fontSize = 13.sp
+                                )
+                            }
+                        },
                         modifier = Modifier
-                            .height(70.dp)
-                            .padding(vertical = 10.dp)
+                            .padding(vertical = 4.dp)
                             .fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         colors = TextFieldDefaults.colors(
                             unfocusedIndicatorColor = LightGray,
                             focusedIndicatorColor = MainBlue,
                             unfocusedContainerColor = Color.White,
-                            focusedContainerColor = Color.White
+                            focusedContainerColor = Color.White,
+                            errorIndicatorColor = Color.Red,
+                            errorContainerColor = Color.White
                         )
                     )
                 }

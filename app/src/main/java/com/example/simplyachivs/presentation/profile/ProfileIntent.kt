@@ -12,4 +12,6 @@ sealed interface ProfileIntent {
     object CloseEditDialog : ProfileIntent
 
     data class SelectOption(val optionId: Int) : ProfileIntent
+
+    object OpenSettings : ProfileIntent
 }

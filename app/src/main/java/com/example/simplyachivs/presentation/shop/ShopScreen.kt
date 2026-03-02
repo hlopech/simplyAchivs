@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.simplyachivs.R
@@ -52,7 +53,7 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun ShopScreen(onAddAward: () -> Unit) {
 
-    val viewModel: ShopViewModel = viewModel()
+    val viewModel: ShopViewModel = hiltViewModel()
 
     val state = viewModel.state.collectAsStateWithLifecycle()
 

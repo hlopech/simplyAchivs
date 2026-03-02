@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.simplyachivs.R
@@ -37,9 +38,9 @@ import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onBack: () -> Unit) {
+fun ProfileScreen(onBack: () -> Unit, onOpenSettings: () -> Unit) {
 
-    val viewModel: ProfileViewModel = viewModel()
+    val viewModel: ProfileViewModel = hiltViewModel()
 
     val state = viewModel.state.collectAsStateWithLifecycle()
 
@@ -55,6 +56,7 @@ fun ProfileScreen(onBack: () -> Unit) {
                 is ProfileEffect.NavigateToOption -> TODO()
                 is ProfileEffect.ShowError -> TODO()
                 is ProfileEffect.ShowDialog -> showDialog = true
+                ProfileEffect.NavigateToSettings -> onOpenSettings()
 
             }
         }
@@ -107,7 +109,9 @@ fun ProfileScreen(onBack: () -> Unit) {
             }
             ProfileInfoSection()
             Spacer(Modifier.height(0.dp))
-            ProfileOptions(listOf(1, 2, 3, 4))
+            ProfileOptions(
+                onSettingsClick = { viewModel.processIntent(ProfileIntent.OpenSettings) }
+            )
         }
 
     }

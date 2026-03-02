@@ -1,10 +1,13 @@
 package com.example.simplyachivs.presentation.home
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.simplyachivs.domain.model.complexity.TaskComplexity
 import com.example.simplyachivs.domain.model.task.Task
+import com.example.simplyachivs.domain.usecase.task.AddTaskUseCase
+import com.example.simplyachivs.domain.usecase.task.CompleteTaskUseCase
+import com.example.simplyachivs.domain.usecase.task.GetTasksUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -13,8 +16,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.util.UUID
+import javax.inject.Inject
 
-class HomeViewModel : ViewModel() {
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val getTasksUseCase: GetTasksUseCase,
+    private val addTaskUseCase: AddTaskUseCase,
+    private val completeTaskUseCase: CompleteTaskUseCase,
+) : ViewModel() {
     private val _state = MutableStateFlow<HomeUiState>(HomeUiState())
     val state = _state.asStateFlow()
 
@@ -41,16 +50,26 @@ class HomeViewModel : ViewModel() {
 
             HomeIntent.OpenProfile -> sendEffect(HomeEffect.NavigateToProfile)
             HomeIntent.AddTask -> {
+                val name = _state.value.newTask?.name.orEmpty().trim()
+                val error = when {
+                    name.isBlank() -> "Введите название задачи"
+                    name.length < 3 -> "Название должно быть не менее 3 символов"
+                    else -> null
+                }
+                if (error != null) {
+                    _state.update { it.copy(taskNameError = error) }
+                    return
+                }
 
                 _state.update {
                     it.copy(
+                        taskNameError = null,
                         newTask = it.newTask?.copy(
                             id = UUID.randomUUID(),
                             createdAt = Instant.now(),
                         )
                     )
                 }
-
 
                 if (_state.value.tasks == null) {
                     _state.update { it.copy(tasks = emptyList()) }
@@ -59,9 +78,7 @@ class HomeViewModel : ViewModel() {
                 sendEffect(HomeEffect.HideAddTaskSheet)
                 _state.update {
                     it.copy(
-                        newTask = it.newTask?.copy(
-                            name = "",
-                        )
+                        newTask = it.newTask?.copy(name = ""),
                     )
                 }
             }
@@ -77,7 +94,15 @@ class HomeViewModel : ViewModel() {
 
                 }
 
-            is HomeIntent.ChangeTaskName -> _state.update { it.copy(newTask = it.newTask?.copy(name = intent.name)) }
+            is HomeIntent.ChangeTaskName -> {
+                val trimmed = intent.name.take(50)
+                _state.update {
+                    it.copy(
+                        newTask = it.newTask?.copy(name = trimmed),
+                        taskNameError = null
+                    )
+                }
+            }
             is HomeIntent.SelectTaskComplexity -> _state.update {
                 it.copy(
                     newTask = it.newTask?.copy(

@@ -13,4 +13,5 @@ data class HomeUiState(
     val newTask: Task? = null,
     val currentTime: Instant? = null,
     val userProgress: UserProgress? = null,
+    val taskNameError: String? = null,
 )
