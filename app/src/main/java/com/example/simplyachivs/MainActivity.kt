@@ -1,4 +1,4 @@
-package com.example.simplyachivs.presentation
+package com.example.simplyachivs
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -9,7 +9,10 @@ import androidx.compose.material3.Scaffold
 import com.example.simplyachivs.presentation.navigation.AppNavHost
 import com.example.simplyachivs.presentation.navigation.BottomNavigationBar
 import com.example.simplyachivs.presentation.navigation.rememberAppState
+import dagger.hilt.android.AndroidEntryPoint
 
+
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {

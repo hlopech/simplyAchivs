@@ -3,7 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization) apply true
-
+    kotlin("kapt")
+    id ("dagger.hilt.android.plugin")
 }
 
 android {
@@ -11,7 +12,9 @@ android {
     compileSdk {
         version = release(36)
     }
-
+    kapt {
+        correctErrorTypes = true
+    }
     defaultConfig {
         applicationId = "com.example.simplyachivs"
         minSdk = 28
@@ -44,7 +47,22 @@ android {
 }
 
 dependencies {
+
+    implementation ("com.google.dagger:hilt-android:2.51.1")
+    kapt ("com.google.dagger:hilt-compiler:2.51.1")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+
     implementation("org.burnoutcrew.composereorderable:reorderable:0.9.6")
+    implementation ("androidx.room:room-runtime:2.8.4")
+
+    kapt ("androidx.room:room-compiler:2.8.4")
+
+    // Kotlin Extensions and Coroutines support
+    implementation ("androidx.room:room-ktx:2.8.4")
+
+    // Optional: Paging support
+    implementation ("androidx.room:room-paging:2.8.4")
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.coil.compose)
