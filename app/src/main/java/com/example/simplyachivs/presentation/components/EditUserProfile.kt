@@ -33,6 +33,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,6 +46,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
+
 import com.example.simplyachivs.R
 import com.example.simplyachivs.ui.theme.DarkGreen
 import com.example.simplyachivs.ui.theme.LightGray
@@ -56,6 +59,7 @@ fun EditUserProfile(
     onConfirm: (String, Uri?) -> Unit
 ) {
     var name by rememberSaveable { mutableStateOf(currentName) }
+    var nameError by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedImageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
 
     val imagePicker = rememberLauncherForActivityResult(
@@ -111,11 +115,35 @@ fun EditUserProfile(
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = name,
-                    onValueChange = { name = it },
+                    onValueChange = {
+                        if (it.length <= 30) {
+                            name = it
+                            nameError = null
+                        }
+                    },
                     label = { Text("Имя") },
+                    isError = nameError != null,
+                    supportingText = {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            if (nameError != null) {
+                                Text(text = nameError!!, color = Color.Red, fontSize = 13.sp)
+                            } else {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                            Text(
+                                text = "${name.length}/30",
+                                color = if (name.length >= 27) Color.Red else Color.Gray,
+                                fontSize = 13.sp
+                            )
+                        }
+                    },
                     colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor =  MainBlue,
-                        unfocusedIndicatorColor =  MainBlue,
+                        focusedIndicatorColor = MainBlue,
+                        unfocusedIndicatorColor = MainBlue,
+                        errorIndicatorColor = Color.Red,
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -123,7 +151,19 @@ fun EditUserProfile(
             }
         },
         confirmButton = {
-            TextButton(onClick = {onConfirm(name, selectedImageUri) }) {
+            TextButton(onClick = {
+                val trimmed = name.trim()
+                val error = when {
+                    trimmed.isBlank() -> "Введите имя"
+                    trimmed.length < 2 -> "Имя должно быть не менее 2 символов"
+                    else -> null
+                }
+                if (error != null) {
+                    nameError = error
+                } else {
+                    onConfirm(trimmed, selectedImageUri)
+                }
+            }) {
                 Text("Сохранить", fontSize = 16.sp, color = MainBlue)
             }
         },

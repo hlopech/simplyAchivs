@@ -12,3 +12,4 @@ import java.util.UUID
 @Serializable object AddTask
 @Serializable object AddTarget
 @Serializable object AddAward
+@Serializable object Settings

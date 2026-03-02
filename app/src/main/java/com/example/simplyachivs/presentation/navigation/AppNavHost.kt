@@ -12,6 +12,7 @@ import com.example.simplyachivs.presentation.profile.ProfileScreen
 import com.example.simplyachivs.presentation.shop.ShopScreen
 import com.example.simplyachivs.presentation.goal.GoalScreen
 import com.example.simplyachivs.presentation.goal.goalDetails.GoalDetails
+import com.example.simplyachivs.presentation.settings.SettingsScreen
 
 @Composable
 fun AppNavHost(appState: AppState) {
@@ -45,6 +46,13 @@ fun AppNavHost(appState: AppState) {
         composable<Profile> {
             ProfileScreen(
                 onBack = { navController.navigateUp() },
+                onOpenSettings = { navController.navigate(Settings) }
+            )
+        }
+
+        composable<Settings> {
+            SettingsScreen(
+                onBack = { navController.navigateUp() }
             )
         }
 
