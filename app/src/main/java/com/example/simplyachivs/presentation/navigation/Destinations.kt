@@ -3,6 +3,8 @@ package com.example.simplyachivs.presentation.navigation
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
+@Serializable object Splash
+@Serializable object Login
 @Serializable object Home
 @Serializable object Target
 @Serializable object Shop

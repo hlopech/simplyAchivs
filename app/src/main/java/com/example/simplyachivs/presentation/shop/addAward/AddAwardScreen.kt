@@ -28,6 +28,8 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -63,7 +65,7 @@ fun AddAwardScreen(onBack: () -> Unit) {
 
     val viewModel: AddAwardViewModel = hiltViewModel()
     val state = viewModel.state.collectAsStateWithLifecycle()
-
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val min = 1
     val max = 9999
@@ -72,13 +74,14 @@ fun AddAwardScreen(onBack: () -> Unit) {
         viewModel.effect.collectLatest { effect ->
             when (effect) {
                 AddAwardEffect.NavigateToAwards -> onBack()
-                is AddAwardEffect.ShowError -> TODO()
+                is AddAwardEffect.ShowError -> snackbarHostState.showSnackbar(effect.message)
             }
         }
     }
 
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(expandedHeight = 50.dp, title = {
                 Text("Новая награда")

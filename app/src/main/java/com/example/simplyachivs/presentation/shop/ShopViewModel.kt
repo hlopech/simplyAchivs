@@ -2,6 +2,7 @@ package com.example.simplyachivs.presentation.shop
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.simplyachivs.domain.repository.SessionRepository
 import com.example.simplyachivs.domain.usecase.award.GetActiveAwardsUseCase
 import com.example.simplyachivs.domain.usecase.award.GetAllAwardsUseCase
 import com.example.simplyachivs.presentation.shop.ShopEffect.*
@@ -10,6 +11,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -18,6 +20,7 @@ import javax.inject.Inject
 class ShopViewModel @Inject constructor(
     private val getAllAwardsUseCase: GetAllAwardsUseCase,
     private val getActiveAwardsUseCase: GetActiveAwardsUseCase,
+    private val sessionRepository: SessionRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ShopUiState>(ShopUiState())
@@ -32,8 +35,20 @@ class ShopViewModel @Inject constructor(
         }
     }
 
-    fun processIntent(intent: ShopIntent) {
+    init {
+        loadAwards()
+    }
 
+    private fun loadAwards() {
+        viewModelScope.launch {
+            val userId = sessionRepository.userId.first() ?: return@launch
+            getAllAwardsUseCase(userId = userId).onSuccess { result ->
+                _state.update { it.copy(awards = result) }
+            }
+        }
+    }
+
+    fun processIntent(intent: ShopIntent) {
         when (intent) {
             ShopIntent.AddNewAward -> sendEffect(ShopEffect.NavigateToCreateNewAward)
 
@@ -49,7 +64,5 @@ class ShopViewModel @Inject constructor(
 
             is ShopIntent.BuyAward -> TODO()
         }
-
     }
-
 }

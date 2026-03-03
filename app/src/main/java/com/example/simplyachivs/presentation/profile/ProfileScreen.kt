@@ -100,14 +100,14 @@ fun ProfileScreen(onBack: () -> Unit, onOpenSettings: () -> Unit) {
         ) {
             if (showDialog) {
                 EditUserProfile(
-                    currentName = "Никита",
+                    currentName = "${state.value.user?.name}",
                     onDismiss = { viewModel.processIntent(ProfileIntent.CloseEditDialog) },
                     onConfirm = { newName, newPhoto ->
                         viewModel.processIntent(ProfileIntent.ConfirmEdition(newName, newPhoto))
                     }
                 )
             }
-            ProfileInfoSection()
+            ProfileInfoSection(state.value.user, state.value.progress)
             Spacer(Modifier.height(0.dp))
             ProfileOptions(
                 onSettingsClick = { viewModel.processIntent(ProfileIntent.OpenSettings) }

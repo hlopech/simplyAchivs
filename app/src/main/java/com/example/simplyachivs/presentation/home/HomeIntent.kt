@@ -1,9 +1,7 @@
 package com.example.simplyachivs.presentation.home
 
-import com.example.simplyachivs.domain.model.complexity.GoalComplexity
 import com.example.simplyachivs.domain.model.complexity.TaskComplexity
 import com.example.simplyachivs.domain.model.task.Task
-import com.example.simplyachivs.presentation.goal.addGoal.AddGoalIntent
 import java.util.UUID
 
 sealed interface HomeIntent {
@@ -16,5 +14,5 @@ sealed interface HomeIntent {
     data class SelectTaskComplexity(val complexity: TaskComplexity) : HomeIntent
 
     object AddTask : HomeIntent
-    data class CompleteTask(val taskId: UUID) : HomeIntent
+    data class CompleteTask(val task: Task) : HomeIntent
 }

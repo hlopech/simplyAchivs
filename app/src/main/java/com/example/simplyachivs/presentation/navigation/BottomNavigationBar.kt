@@ -29,6 +29,8 @@ fun BottomNavigationBar(appState: AppState) {
     val backStackEntry = appState.navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry.value?.destination
     val showBottomBar = currentDestination?.hasRoute(DetailTask::class) != true
+            && currentDestination?.hasRoute(Splash::class) != true
+            && currentDestination?.hasRoute(Login::class) != true
     if (showBottomBar) {
         NavigationBar(
             tonalElevation = 20.dp,

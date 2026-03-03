@@ -49,6 +49,8 @@ android {
 dependencies {
 
     implementation ("com.google.dagger:hilt-android:2.51.1")
+    implementation(libs.identity.jvm)
+    implementation(libs.androidx.datastore.core)
     kapt ("com.google.dagger:hilt-compiler:2.51.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
@@ -64,6 +66,7 @@ dependencies {
     // Optional: Paging support
     implementation ("androidx.room:room-paging:2.8.4")
 
+    implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.coil.compose)
     implementation(libs.androidx.core.ktx)

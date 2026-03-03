@@ -42,6 +42,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -90,12 +91,17 @@ fun HomeScreen(onOpenProfile: () -> Unit) {
 
     val hasNewMessage = remember { mutableStateOf(true) }
     var isAddSheetVisible by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val targetProgress = remember(state.value.tasks) {
-        val completed = state.value.tasks?.count { it.completedAt != null } ?: 0
-        val total = state.value.tasks?.size ?: 1
-        completed.toFloat() / total
+        val tasks = state.value.tasks
+        if (tasks.isNullOrEmpty()) {
+            0f
+        } else {
+            val completed = tasks.count { it.completedAt != null }
+            completed.toFloat() / tasks.size
+        }
     }
 
     val animatedProgress by animateFloatAsState(
@@ -112,7 +118,7 @@ fun HomeScreen(onOpenProfile: () -> Unit) {
                 }
 
                 HomeEffect.ShowAddTaskSheet -> isAddSheetVisible = true
-                is HomeEffect.ShowError -> TODO()
+                is HomeEffect.ShowError ->  snackbarHostState.showSnackbar(effect.message)
             }
         }
     }
@@ -728,7 +734,7 @@ fun HomeScreen(onOpenProfile: () -> Unit) {
                             ) {
                                 CircularCheckbox(
                                     task.completedAt != null,
-                                    { viewModel.processIntent(HomeIntent.CompleteTask(task.id!!)) },
+                                    { viewModel.processIntent(HomeIntent.CompleteTask(task)) },
                                     modifier = Modifier
                                         .size(30.dp),
                                     checkedColor = MainBlue,

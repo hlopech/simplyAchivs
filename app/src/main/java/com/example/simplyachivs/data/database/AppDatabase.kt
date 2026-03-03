@@ -27,7 +27,7 @@ import com.example.simplyachivs.data.entity.converters.Converters
             StepEntity::class,
             GoalEntity::class,
             AwardEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(Converters::class)

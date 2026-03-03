@@ -8,9 +8,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.content.MediaType.Companion.Text
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedCard
@@ -39,18 +43,20 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType.Companion.Text
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.simplyachivs.R
+import com.example.simplyachivs.domain.model.user.User
+import com.example.simplyachivs.domain.model.user.UserProgress
 import com.example.simplyachivs.ui.theme.MainBlue
 import com.example.simplyachivs.ui.theme.Orange
 import com.example.simplyachivs.ui.theme.ProfileComponentsBg
 
-@Preview
 @Composable
-fun ProfileInfoSection() {
+fun ProfileInfoSection(user: User?, progress: UserProgress?) {
 
     Row(
         modifier = Modifier
@@ -79,7 +85,9 @@ fun ProfileInfoSection() {
                 )
             }
             Text(
-                text = "Никита",
+                text = "${
+                    user?.name
+                }",
                 modifier = Modifier
                     .padding(vertical = 10.dp)
                     .fillMaxWidth(0.3f),
@@ -100,92 +108,101 @@ fun ProfileInfoSection() {
                         .padding(5.dp)
                         .fillMaxWidth()
                 ) {
+                    if (progress == null || user == null) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = MainBlue)
+                        }
 
+                    } else {
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 5.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "Lv 17", style = TextStyle(
-                                fontSize = 25.sp,
-                                fontWeight = FontWeight(900),
-                                color = Color.Black,
-                                fontFamily = FontFamily.Monospace,
-                            )
-                        )
-
-                        AnimatedDashedCard(
+                        Row(
                             modifier = Modifier
-                                .padding(5.dp)
-                        ) {
-                            Text(
-                                "До сдел.уровня 123 XP",
-                                style = TextStyle(color = Color.DarkGray),
-                                modifier = Modifier.padding(5.dp)
-                            )
-                        }
-                    }
-
-                    LinearProgressIndicator(
-                        progress = { 0.6f },
-                        modifier = Modifier
-                            .fillMaxWidth(1f)
-                            .height(10.dp)
-                            .clip(RoundedCornerShape(999.dp))
-                            .background(Color.LightGray),
-                        color = MainBlue,
-                        trackColor = Color.LightGray,
-                        gapSize = 0.dp,
-                        drawStopIndicator = { false },
-                        strokeCap = StrokeCap.Round
-                    )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-
-                        Row(
+                                .fillMaxWidth()
+                                .padding(vertical = 5.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(10.dp)
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Image(
-                                painter = painterResource(R.drawable.xp_img),
-                                contentDescription = "xp",
-                                modifier = Modifier.size(30.dp)
-                            )
                             Text(
-                                " 110", style = TextStyle(
-                                    color = Color.DarkGray,
-                                    fontSize = 20.sp,
+                                text = "LvL:${progress?.xp?.div(100)}", style = TextStyle(
+                                    fontSize = 25.sp,
                                     fontWeight = FontWeight(900),
-                                    textAlign = TextAlign.Center
+                                    color = Color.Black,
+                                    fontFamily = FontFamily.Monospace,
                                 )
                             )
-                        }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(10.dp)
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.coin_img),
-                                contentDescription = "coins",
-                                modifier = Modifier.size(30.dp)
-                            )
-                            Text(
-                                "111", style = TextStyle(
-                                    color = Color.DarkGray,
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight(900),
-                                    textAlign = TextAlign.Center
+
+                            AnimatedDashedCard(
+                                modifier = Modifier
+                                    .padding(5.dp)
+                            ) {
+                                Text(
+                                    "До след. ур. : ${100 - (progress.xp % 100)} xp ",
+                                    style = TextStyle(color = Color.DarkGray),
+                                    modifier = Modifier.padding(5.dp)
                                 )
-                            )
+                            }
                         }
 
+                        LinearProgressIndicator(
+                            progress = { 0.6f },
+                            modifier = Modifier
+                                .fillMaxWidth(1f)
+                                .height(10.dp)
+                                .clip(RoundedCornerShape(999.dp))
+                                .background(Color.LightGray),
+                            color = MainBlue,
+                            trackColor = Color.LightGray,
+                            gapSize = 0.dp,
+                            drawStopIndicator = { false },
+                            strokeCap = StrokeCap.Round
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(10.dp)
+                            ) {
+                                Image(
+                                    painter = painterResource(R.drawable.xp_img),
+                                    contentDescription = "xp",
+                                    modifier = Modifier.size(30.dp)
+                                )
+                                Text(
+                                    "${progress?.xp}", style = TextStyle(
+                                        color = Color.DarkGray,
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight(900),
+                                        textAlign = TextAlign.Center
+                                    )
+                                )
+                            }
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(10.dp)
+                            ) {
+                                Image(
+                                    painter = painterResource(R.drawable.coin_img),
+                                    contentDescription = "coins",
+                                    modifier = Modifier.size(30.dp)
+                                )
+                                Text(
+                                    "${progress?.coin}", style = TextStyle(
+                                        color = Color.DarkGray,
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight(900),
+                                        textAlign = TextAlign.Center
+                                    )
+                                )
+                            }
+
+                        }
                     }
 
                 }
@@ -199,7 +216,7 @@ fun ProfileInfoSection() {
                     contentDescription = "streak",
                     tint = Orange
                 )
-                Text(text = " Серия 6 дней!")
+                Text(text = " Серия ${progress?.streak} дней!")
             }
 
         }

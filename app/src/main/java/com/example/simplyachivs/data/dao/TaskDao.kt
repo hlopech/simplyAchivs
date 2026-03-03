@@ -30,4 +30,7 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE userId = :userId ORDER BY completedAt DESC")
     suspend fun getAllTasks(userId: UUID): List<TaskEntity>
 
+    @Query("DELETE FROM tasks WHERE userId = :userId")
+    suspend fun deleteAllTasks(userId: UUID)
+
 }
