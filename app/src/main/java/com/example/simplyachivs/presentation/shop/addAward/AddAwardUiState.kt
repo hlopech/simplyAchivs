@@ -9,7 +9,7 @@ data class AddAwardUiState(
     val awardDescription: String = "",
     val error: AddAwardError? = null,
     val price: Int = 1,
-    val goalImage: Int? = null,
+    val selectedImage: AwardImage = AwardImage.AWARD,
     val awardNameError: String? = null,
     val priceError: String? = null,
 )

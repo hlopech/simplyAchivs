@@ -69,7 +69,7 @@ class AddAwardViewModel @Inject constructor(
                             name = name,
                             description = _state.value.awardDescription,
                             price = _state.value.price,
-                            image = 123
+                            image = _state.value.selectedImage.resId
                         )
                     ).onSuccess {
                         sendEffect(AddAwardEffect.NavigateToAwards)
@@ -96,7 +96,9 @@ class AddAwardViewModel @Inject constructor(
                 it.copy(price = intent.price, priceError = null)
             }
 
-            is AddAwardIntent.SelectGoalImage -> TODO()
+            is AddAwardIntent.SelectGoalImage -> _state.update {
+                it.copy(selectedImage = intent.image)
+            }
         }
     }
 }

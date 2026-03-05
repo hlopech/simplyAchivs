@@ -10,4 +10,5 @@ interface AwardRepository {
     suspend fun getActiveAwards(userId: UUID): List<Award>
     suspend fun getCompletedAwards(userId: UUID): List<Award>
     suspend fun updateAward(award: Award)
+    suspend fun deleteAward(award: Award)
 }

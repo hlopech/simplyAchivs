@@ -9,7 +9,7 @@ sealed interface AddAwardIntent {
 
     data class ChangeAwardName(val name: String) :AddAwardIntent
     data class ChangeAwardDescription(val description: String) : AddAwardIntent
-    data class SelectGoalImage(val image: Int) : AddAwardIntent
+    data class SelectGoalImage(val image: AwardImage) : AddAwardIntent
     data class ChangeAwardPrice(val price: Int) : AddAwardIntent
     data class ChangeAwardPriceSlider(val price: Int) : AddAwardIntent
 

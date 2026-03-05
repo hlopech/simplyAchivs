@@ -33,4 +33,7 @@ class AwardRepositoryImpl @Inject constructor(private val awardDao: AwardDao) : 
         awardDao.updateAward(award.toEntity())
     }
 
+    override suspend fun deleteAward(award: Award) {
+        awardDao.deleteAward(award.toEntity())
+    }
 }
