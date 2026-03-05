@@ -1,27 +1,32 @@
 package com.example.simplyachivs.presentation.shop
 
-import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection.Companion.End
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,19 +37,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.InspectableModifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.simplyachivs.R
 import com.example.simplyachivs.presentation.components.AwardCard
 import com.example.simplyachivs.presentation.components.AwardDetailsDialog
+import com.example.simplyachivs.ui.theme.CoinColor
 import com.example.simplyachivs.ui.theme.MainBlue
 import kotlinx.coroutines.flow.collectLatest
 
@@ -56,6 +60,7 @@ fun ShopScreen(onAddAward: () -> Unit) {
     val viewModel: ShopViewModel = hiltViewModel()
 
     val state = viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     var showDialog by remember {
         mutableStateOf(false)
@@ -66,12 +71,14 @@ fun ShopScreen(onAddAward: () -> Unit) {
                 ShopEffect.HideAwardDetailsDialog -> showDialog = false
                 ShopEffect.NavigateToCreateNewAward -> onAddAward()
                 is ShopEffect.ShowAwardDetailsDialog -> showDialog = true
-                is ShopEffect.ShowError -> TODO()
+                is ShopEffect.ShowError ->  snackbarHostState.showSnackbar(effect.message)
+
             }
         }
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { viewModel.processIntent(ShopIntent.AddNewAward) },
@@ -126,9 +133,11 @@ fun ShopScreen(onAddAward: () -> Unit) {
 
         if (showDialog) {
             AwardDetailsDialog(
-                state.value.selectedAward,
+                award = state.value.selectedAward,
                 onDismiss = { viewModel.processIntent(ShopIntent.HideAwardDetails) },
-                onConfirm = { viewModel.processIntent(ShopIntent.BuyAward(state.value.selectedAward!!)) })
+                onConfirm = { viewModel.processIntent(ShopIntent.BuyAward(state.value.selectedAward!!)) },
+                onDelete = { viewModel.processIntent(ShopIntent.DeleteAward(state.value.selectedAward!!)) }
+            )
         }
 
         Column(
@@ -137,28 +146,81 @@ fun ShopScreen(onAddAward: () -> Unit) {
                 .fillMaxWidth()
                 .padding(top = paddingValues.calculateTopPadding())
         ) {
-            if (state.value.isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = MainBlue)
+            when {
+                state.value.isLoading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = MainBlue)
+                    }
                 }
-            } else
-                Box(modifier = Modifier.padding(bottom = 100.dp)) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth(0.95f)
-                    ) {
-                        items(state.value.awards) { award ->
-                            AwardCard(
-                                award,
-                                { viewModel.processIntent(ShopIntent.OpenAwardDetails(award)) }
-                            )
+                state.value.awards.isEmpty() -> {
+                    EmptyAwardsState(onAddAward = { viewModel.processIntent(ShopIntent.AddNewAward) })
+                }
+                else -> {
+                    Box(modifier = Modifier.padding(bottom = 100.dp)) {
+                        LazyColumn(modifier = Modifier.fillMaxWidth(0.95f)) {
+                            items(state.value.awards) { award ->
+                                AwardCard(
+                                    award,
+                                    { viewModel.processIntent(ShopIntent.OpenAwardDetails(award)) }
+                                )
+                            }
                         }
                     }
-
                 }
+            }
 
         }
 
     }
 
+}
+
+@Composable
+private fun EmptyAwardsState(onAddAward: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Image(
+            painter = painterResource(R.drawable.awards_image),
+            contentDescription = null,
+            modifier = Modifier.size(180.dp)
+        )
+        Spacer(Modifier.height(24.dp))
+        Text(
+            text = "Наград пока нет",
+            fontWeight = FontWeight.Bold,
+            fontSize = 22.sp,
+            color = Color.Black
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = "Создайте свою первую награду и потратьте заработанные монеты на что-то приятное!",
+            fontSize = 14.sp,
+            color = Color.Gray,
+            textAlign = TextAlign.Center,
+            lineHeight = 20.sp
+        )
+        Spacer(Modifier.height(28.dp))
+        Button(
+            onClick = onAddAward,
+            colors = ButtonDefaults.buttonColors(containerColor = MainBlue),
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = "  Создать награду",
+                color = Color.White,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 16.sp
+            )
+        }
+    }
 }

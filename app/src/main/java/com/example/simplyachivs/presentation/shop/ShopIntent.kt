@@ -9,5 +9,6 @@ sealed interface ShopIntent {
 
     data class BuyAward(val award: Award) : ShopIntent
     data class OpenAwardDetails(val award: Award) : ShopIntent
+    data class DeleteAward(val award: Award) : ShopIntent
 
 }
