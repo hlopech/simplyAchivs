@@ -22,6 +22,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,8 +33,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.simplyachivs.R
 import com.example.simplyachivs.presentation.components.MainButton
 import com.example.simplyachivs.presentation.components.GoalCard
@@ -46,6 +49,17 @@ fun GoalScreen(onAddNewTarget: () -> Unit, onOpenGoal: (goalId: String) -> Unit)
 
     val viewModel: GoalViewModel = hiltViewModel()
     val state = viewModel.uiState.collectAsStateWithLifecycle()
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.processIntent(GoalIntent.Refresh)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
@@ -124,7 +138,47 @@ fun GoalScreen(onAddNewTarget: () -> Unit, onOpenGoal: (goalId: String) -> Unit)
                 }
             }
 
-            GoalUiState.WithoutActiveGoals -> Text("Нет активных целей")
+            GoalUiState.WithoutActiveGoals -> {
+                Card(
+                    colors = CardDefaults.cardColors(Color.White),
+                    modifier = Modifier
+                        .fillMaxWidth(0.95f)
+                        .padding(10.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    elevation = CardDefaults.cardElevation(5.dp),
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(R.drawable.award_img),
+                            contentDescription = "education target",
+                            modifier = Modifier
+                                .size(100.dp)
+                                .padding(end = 10.dp)
+                        )
+                        Column(modifier = Modifier.padding(bottom = 10.dp)) {
+                            Text(
+                                text = "Создайте новую цель", style = TextStyle(
+                                    fontWeight = FontWeight(600), fontSize = 20.sp
+                                ), modifier = Modifier.padding(top = 10.dp)
+                            )
+                            Text(
+                                text = "Поставьте амбициозную задачу!", style = TextStyle(
+                                    fontWeight = FontWeight(600),
+                                    fontSize = 15.sp,
+                                    color = Color.Gray
+                                ), modifier = Modifier.padding(top = 10.dp, bottom = 10.dp)
+                            )
+                            MainButton(
+                                MainBlue,
+                                Color.White,
+                                { viewModel.processIntent(GoalIntent.AddNewGoal) },
+                                "Новая цель",
+                                Icons.Default.Add,
+                            )
+                        }
+                    }
+                }
+            }
             GoalUiState.WithoutCompletedGoals -> Text("Нет завершенных целей")
             is GoalUiState.ShowActiveGoals -> {
                 LazyColumn(
@@ -139,9 +193,7 @@ fun GoalScreen(onAddNewTarget: () -> Unit, onOpenGoal: (goalId: String) -> Unit)
                                 .padding(10.dp),
                             shape = RoundedCornerShape(10.dp),
                             elevation = CardDefaults.cardElevation(5.dp),
-
-                            ) {
-
+                        ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Image(
                                     painter = painterResource(R.drawable.award_img),
@@ -151,13 +203,11 @@ fun GoalScreen(onAddNewTarget: () -> Unit, onOpenGoal: (goalId: String) -> Unit)
                                         .padding(end = 10.dp)
                                 )
                                 Column(modifier = Modifier.padding(bottom = 10.dp)) {
-
                                     Text(
                                         text = "Создайте новую цель", style = TextStyle(
                                             fontWeight = FontWeight(600), fontSize = 20.sp
                                         ), modifier = Modifier.padding(top = 10.dp)
                                     )
-
                                     Text(
                                         text = "Поставьте амбициозную задачу!", style = TextStyle(
                                             fontWeight = FontWeight(600),
@@ -165,7 +215,6 @@ fun GoalScreen(onAddNewTarget: () -> Unit, onOpenGoal: (goalId: String) -> Unit)
                                             color = Color.Gray
                                         ), modifier = Modifier.padding(top = 10.dp, bottom = 10.dp)
                                     )
-
                                     MainButton(
                                         MainBlue,
                                         Color.White,
@@ -173,27 +222,29 @@ fun GoalScreen(onAddNewTarget: () -> Unit, onOpenGoal: (goalId: String) -> Unit)
                                         "Новая цель",
                                         Icons.Default.Add,
                                     )
-
                                 }
                             }
                         }
-
-
                     }
-                    items(listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 10)) { it ->
-                        GoalCard({ viewModel.processIntent(GoalIntent.OpenGoalDetails(it.toString())) })
+                    items(uiState.goals, key = { it.id }) { goal ->
+                        GoalCard(
+                            goal = goal,
+                            onClick = { viewModel.processIntent(GoalIntent.OpenGoalDetails(goal.id.toString())) }
+                        )
                     }
                 }
             }
-
 
             is GoalUiState.ShowCompletedGoals -> {
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth(0.95f),
                     contentPadding = PaddingValues(bottom = 100.dp)
                 ) {
-                    items(listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 10)) {
-                        GoalCard({})
+                    items(uiState.goals, key = { it.id }) { goal ->
+                        GoalCard(
+                            goal = goal,
+                            onClick = { viewModel.processIntent(GoalIntent.OpenGoalDetails(goal.id.toString())) }
+                        )
                     }
                 }
             }

@@ -10,6 +10,7 @@ interface GoalRepository {
     suspend fun getAllGoals(userId: UUID):List<Goal>
     suspend fun getActiveGoals(userId: UUID):List<Goal>
     suspend fun getCompletedGoals(userId: UUID):List<Goal>
+    suspend fun deleteGoal(goal: Goal)
     suspend fun updateGoal(goal: Goal)
     suspend fun addStep(step: Step)
     suspend fun getSteps(goalId: UUID):List<Step>

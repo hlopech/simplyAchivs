@@ -2,20 +2,26 @@ package com.example.simplyachivs.di
 
 import android.content.Context
 import androidx.room.Room
+import com.example.simplyachivs.data.dao.AsceticismDao
 import com.example.simplyachivs.data.dao.AwardDao
+import com.example.simplyachivs.data.dao.EventDao
 import com.example.simplyachivs.data.dao.GoalDao
 import com.example.simplyachivs.data.dao.StepDao
 import com.example.simplyachivs.data.dao.TaskDao
 import com.example.simplyachivs.data.dao.UserDao
 import com.example.simplyachivs.data.dao.UserProgressDao
 import com.example.simplyachivs.data.database.AppDatabase
+import com.example.simplyachivs.data.repositoryImpl.AsceticismRepositoryImpl
 import com.example.simplyachivs.data.repositoryImpl.AwardRepositoryImpl
+import com.example.simplyachivs.data.repositoryImpl.EventRepositoryImpl
 import com.example.simplyachivs.data.repositoryImpl.GoalRepositoryImpl
 import com.example.simplyachivs.data.repositoryImpl.SessionRepositoryImpl
 import com.example.simplyachivs.data.repositoryImpl.TaskRepositoryImpl
 import com.example.simplyachivs.data.repositoryImpl.UserProgressRepositoryImpl
 import com.example.simplyachivs.data.repositoryImpl.UserRepositoryImpl
+import com.example.simplyachivs.domain.repository.AsceticismRepository
 import com.example.simplyachivs.domain.repository.AwardRepository
+import com.example.simplyachivs.domain.repository.EventRepository
 import com.example.simplyachivs.domain.repository.GoalRepository
 import com.example.simplyachivs.domain.repository.SessionRepository
 import com.example.simplyachivs.domain.repository.TaskRepository
@@ -57,6 +63,12 @@ object AppModule {
 
     @Provides
     fun provideAwardDao(db: AppDatabase): AwardDao = db.awardDao()
+
+    @Provides
+    fun provideEventDao(db: AppDatabase): EventDao = db.eventDao()
+
+    @Provides
+    fun provideAsceticismDao(db: AppDatabase): AsceticismDao = db.asceticismDao()
 }
 
 @Module
@@ -81,4 +93,10 @@ abstract class RepositoryModule {
 
     @Binds
     abstract fun bindUserProgressRepository(impl: UserProgressRepositoryImpl): UserProgressRepository
+
+    @Binds
+    abstract fun bindEventRepository(impl: EventRepositoryImpl): EventRepository
+
+    @Binds
+    abstract fun bindAsceticismRepository(impl: AsceticismRepositoryImpl): AsceticismRepository
 }

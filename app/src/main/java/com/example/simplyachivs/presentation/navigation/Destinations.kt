@@ -15,3 +15,6 @@ import java.util.UUID
 @Serializable object AddTarget
 @Serializable object AddAward
 @Serializable object Settings
+@Serializable object Achievements
+@Serializable object Analytics
+@Serializable object Asceticism

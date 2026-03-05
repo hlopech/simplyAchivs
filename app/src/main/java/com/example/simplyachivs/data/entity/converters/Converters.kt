@@ -2,6 +2,7 @@ package com.example.simplyachivs.data.entity.converters
 
 import androidx.room.TypeConverter
 import com.example.simplyachivs.domain.model.award.AwardStatus
+import com.example.simplyachivs.domain.model.event.EventType
 import com.example.simplyachivs.domain.model.complexity.GoalComplexity
 import com.example.simplyachivs.domain.model.complexity.TaskComplexity
 import com.example.simplyachivs.domain.model.goal.GoalStatus
@@ -51,6 +52,12 @@ class Converters {
 
     @TypeConverter
     fun toUUID(uuid: String?): UUID? = uuid?.let { UUID.fromString(it) }
+
+    @TypeConverter
+    fun fromEventType(value: EventType): String = value.name
+
+    @TypeConverter
+    fun toEventType(value: String): EventType = EventType.valueOf(value)
 
 
 }

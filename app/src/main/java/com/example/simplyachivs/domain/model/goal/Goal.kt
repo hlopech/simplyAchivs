@@ -8,7 +8,7 @@ data class Goal(
     val id: UUID,
     val userId: UUID,
     val status:GoalStatus,
-    val image: Int,
+    val image: String?,
     val name:String,
     val description:String,
     val complexity: GoalComplexity,

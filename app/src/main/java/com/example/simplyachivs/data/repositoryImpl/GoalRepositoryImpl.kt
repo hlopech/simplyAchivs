@@ -32,6 +32,10 @@ class GoalRepositoryImpl @Inject constructor(private val goalDao: GoalDao, priva
         return goalDao.getCompletedGoals(userId).map { it.toDomain() }
     }
 
+    override suspend fun deleteGoal(goal: Goal) {
+        goalDao.deleteGoal(goal.toEntity())
+    }
+
     override suspend fun updateGoal(goal: Goal) {
         goalDao.updateGoal(goal.toEntity())
     }

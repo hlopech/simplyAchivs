@@ -3,16 +3,18 @@ package com.example.simplyachivs.presentation.goal.addGoal
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -20,24 +22,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.relocation.BringIntoViewRequester
-import androidx.compose.foundation.relocation.bringIntoViewRequester
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -45,7 +45,6 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.internal.rememberComposableLambdaN
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -53,23 +52,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.ContentScale.Companion.Fit
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.simplyachivs.R
 import com.example.simplyachivs.domain.model.complexity.GoalComplexity
@@ -92,26 +85,24 @@ fun AddGoalScreen(onBack: () -> Unit) {
 
     val viewModel: AddGoalViewModel = hiltViewModel()
     val state = viewModel.state.collectAsStateWithLifecycle()
-
-
-    val requester = remember { BringIntoViewRequester() }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val stepsOffset = 4
     val reorderState = rememberReorderableLazyListState(
         onMove = { from, to ->
-
             val fromIndex = from.index - stepsOffset
             val toIndex = to.index - stepsOffset
-
             if (fromIndex in state.value.steps.indices && toIndex in state.value.steps.indices) {
                 viewModel.moveStep(fromIndex, toIndex)
             }
-        },
+        }
     )
+
     var selectedImageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
-        onResult = { uri -> selectedImageUri = uri })
+        onResult = { uri -> selectedImageUri = uri }
+    )
 
     LaunchedEffect(selectedImageUri) {
         if (selectedImageUri != null) {
@@ -125,44 +116,42 @@ fun AddGoalScreen(onBack: () -> Unit) {
                 AddGoalEffect.LaunchImagePicker -> imagePicker.launch("image/*")
                 AddGoalEffect.NavigateToGoals -> onBack()
                 AddGoalEffect.SelectComplexity -> {
-
-                    reorderState.listState.animateScrollToItem(state.value.steps.size + 2)
+                    reorderState.listState.animateScrollToItem(state.value.steps.size + stepsOffset)
                 }
-
-                is AddGoalEffect.ShowError -> TODO()
-
+                is AddGoalEffect.ShowError -> snackbarHostState.showSnackbar(effect.message)
             }
         }
-
     }
 
-
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            CenterAlignedTopAppBar(expandedHeight = 50.dp, title = {
-                Text("Новая цель")
-            }, navigationIcon = {
-                IconButton(onClick = { viewModel.processIntent(AddGoalIntent.GoBack) }) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowLeft,
-                        contentDescription = "",
-                        tint = MainBlue,
-                        modifier = Modifier.size(40.dp)
-                    )
+            CenterAlignedTopAppBar(
+                expandedHeight = 50.dp,
+                title = { Text("Новая цель", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = { viewModel.processIntent(AddGoalIntent.GoBack) }) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowLeft,
+                            contentDescription = "",
+                            tint = MainBlue,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { viewModel.processIntent(AddGoalIntent.AddNewGoal) }) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "",
+                            tint = MainBlue,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
                 }
-            }, actions = {
-                IconButton(onClick = { viewModel.processIntent(AddGoalIntent.AddNewGoal) }) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "",
-                        tint = MainBlue,
-                        modifier = Modifier.size(30.dp)
-                    )
-                }
-            }
-
             )
-        }) { paddingValues ->
+        }
+    ) { paddingValues ->
 
         LazyColumn(
             contentPadding = PaddingValues(
@@ -173,128 +162,100 @@ fun AddGoalScreen(onBack: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .reorderable(reorderState)
-                .detectReorderAfterLongPress(reorderState)
-//                .padding(top = paddingValues.calculateTopPadding(), bottom = 100.dp)
-            ,
+                .detectReorderAfterLongPress(reorderState),
             state = reorderState.listState
         ) {
+
+            // ── Image preview ────────────────────────────────────────────
             item {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .background(Brush.verticalGradient(listOf(MainBlueLight, Color.White)))
                 ) {
-
-
-                    when (selectedImageUri) {
-
-                        null -> Image(
-                            painter = painterResource(R.drawable.awards_image),
-                            contentDescription = "",
-                            contentScale = ContentScale.FillBounds,
-                            modifier = Modifier
-                                .height(150.dp)
-                                .width(300.dp)
-                                .padding(bottom = 10.dp)
-                                .clip(RoundedCornerShape(20.dp)),
-
-                            )
-
-                        else -> Image(
-                            painter = rememberAsyncImagePainter(selectedImageUri),
-                            contentDescription = "",
-                            contentScale = ContentScale.FillBounds,
-                            modifier = Modifier
-                                .height(150.dp)
-                                .width(300.dp)
-                                .padding(bottom = 10.dp)
-                                .clip(RoundedCornerShape(20.dp)),
-
-                            )
-                    }
-                    Button(
-                        onClick = {
-                            viewModel.processIntent(AddGoalIntent.OpenImagePicker)
-
-                        }, colors = ButtonDefaults.buttonColors(MainBlueLight)
+                    Box(
+                        modifier = Modifier
+                            .size(120.dp)
+                            .align(Alignment.Center)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color.White.copy(alpha = 0.7f)),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-
-                            Icon(
-                                painter = painterResource(R.drawable.brush_icon),
-                                contentDescription = "edit photo",
-                                tint = MainBlue,
-                                modifier = Modifier.size(30.dp)
+                        if (selectedImageUri != null) {
+                            Image(
+                                painter = rememberAsyncImagePainter(selectedImageUri),
+                                contentDescription = "",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(20.dp))
                             )
-                            Text(
-                                text = "Изменить иконку цели", style = TextStyle(
-                                    fontWeight = FontWeight(500), fontSize = 18.sp, color = MainBlue
-                                )
+                        } else {
+                            Image(
+                                painter = painterResource(R.drawable.awards_image),
+                                contentDescription = "",
+                                modifier = Modifier.size(90.dp)
                             )
-
                         }
                     }
-
-
-                }
-
-            }
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth(0.95f)
-                        .padding(top = 10.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
+                    IconButton(
+                        onClick = { viewModel.processIntent(AddGoalIntent.OpenImagePicker) },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(12.dp)
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(MainBlue)
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.star_icon),
-                            contentDescription = "target name input",
-                            tint = CoinColor,
-                            modifier = Modifier.size(30.dp)
-                        )
-                        Text(
-                            "Название цели", style = TextStyle(
-                                fontWeight = FontWeight(400), fontSize = 18.sp, color = Color.Black
-                            )
+                            painter = painterResource(R.drawable.brush_icon),
+                            contentDescription = "edit photo",
+                            tint = Color.White,
+                            modifier = Modifier.size(18.dp)
                         )
                     }
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+
+            // ── Name ─────────────────────────────────────────────────────
+            item {
+                GoalSectionCard {
+                    GoalSectionHeader(
+                        icon = {
+                            Icon(
+                                painterResource(R.drawable.star_icon), null,
+                                tint = CoinColor, modifier = Modifier.size(22.dp)
+                            )
+                        },
+                        title = "Название цели"
+                    )
                     val goalNameError = state.value.goalNameError
                     OutlinedTextField(
                         value = state.value.goalName,
                         onValueChange = { viewModel.processIntent(AddGoalIntent.ChangeGoalName(it)) },
-                        placeholder = {
-                            Text(
-                                "Введите название...", style = TextStyle(
-                                    fontWeight = FontWeight(400),
-                                    fontSize = 18.sp,
-                                    color = Color.Gray
-                                )
-                            )
-                        },
+                        placeholder = { Text("Введите название...", color = Color.Gray) },
                         isError = goalNameError != null,
                         supportingText = {
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
+                                Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 if (goalNameError != null) {
-                                    Text(text = goalNameError, color = Color.Red, fontSize = 13.sp)
+                                    Text(goalNameError, color = Color.Red, fontSize = 12.sp)
                                 } else {
-                                    Spacer(modifier = Modifier.weight(1f))
+                                    Spacer(Modifier.weight(1f))
                                 }
                                 Text(
-                                    text = "${state.value.goalName.length}/50",
+                                    "${state.value.goalName.length}/50",
                                     color = if (state.value.goalName.length >= 45) Color.Red else Color.Gray,
-                                    fontSize = 13.sp
+                                    fontSize = 12.sp
                                 )
                             }
                         },
-                        modifier = Modifier
-                            .padding(vertical = 4.dp)
-                            .fillMaxWidth(),
-                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
                         colors = TextFieldDefaults.colors(
                             unfocusedIndicatorColor = LightGray,
                             focusedIndicatorColor = MainBlue,
@@ -307,54 +268,32 @@ fun AddGoalScreen(onBack: () -> Unit) {
                 }
             }
 
+            // ── Description ──────────────────────────────────────────────
             item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth(0.95f)
-                        .padding(top = 10.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.draw_icon),
-                            contentDescription = "target description input",
-                            tint = DarkGreen,
-                            modifier = Modifier.size(30.dp)
-                        )
-                        Text(
-                            "Описание", style = TextStyle(
-                                fontWeight = FontWeight(400), fontSize = 18.sp, color = Color.Black
+                GoalSectionCard {
+                    GoalSectionHeader(
+                        icon = {
+                            Icon(
+                                painterResource(R.drawable.draw_icon), null,
+                                tint = DarkGreen, modifier = Modifier.size(22.dp)
                             )
-                        )
-                    }
+                        },
+                        title = "Описание"
+                    )
                     OutlinedTextField(
                         value = state.value.goalDescription,
-                        onValueChange = {
-                            viewModel.processIntent(AddGoalIntent.ChangeGoalDescription(it))
-                        },
-                        placeholder = {
-                            Text(
-                                "Добавьте описание (необязательно)", style = TextStyle(
-                                    fontWeight = FontWeight(400),
-                                    fontSize = 18.sp,
-                                    color = Color.Gray
-                                )
-                            )
-                        },
+                        onValueChange = { viewModel.processIntent(AddGoalIntent.ChangeGoalDescription(it)) },
+                        placeholder = { Text("Добавьте описание (необязательно)", color = Color.Gray) },
                         supportingText = {
                             Text(
-                                text = "${state.value.goalDescription.length}/200",
+                                "${state.value.goalDescription.length}/200",
                                 color = if (state.value.goalDescription.length >= 180) Color.Red else Color.Gray,
-                                fontSize = 13.sp,
-                                modifier = Modifier.fillMaxWidth(),
+                                fontSize = 12.sp,
+                                modifier = Modifier.fillMaxWidth()
                             )
                         },
-                        modifier = Modifier
-                            .padding(vertical = 4.dp)
-                            .fillMaxWidth(),
-                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
                         colors = TextFieldDefaults.colors(
                             unfocusedIndicatorColor = LightGray,
                             focusedIndicatorColor = MainBlue,
@@ -364,109 +303,82 @@ fun AddGoalScreen(onBack: () -> Unit) {
                     )
                 }
             }
+
+            // ── Steps input ──────────────────────────────────────────────
             item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth(0.95f)
-                        .padding(top = 10.dp)
-                ) {
+                GoalSectionCard {
+                    GoalSectionHeader(
+                        icon = {
+                            Icon(
+                                painterResource(R.drawable.flag_icon), null,
+                                tint = Purple40, modifier = Modifier.size(22.dp)
+                            )
+                        },
+                        title = "Промежуточные шаги"
+                    )
+                    val stepError = state.value.newStepNameError
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 10.dp)
+                            .background(Color.White)
+                            .border(
+                                1.dp,
+                                if (stepError != null) Color.Red else LightGray,
+                                RoundedCornerShape(12.dp)
+                            )
                     ) {
-                        Icon(
-                            painter = painterResource(R.drawable.flag_icon),
-                            contentDescription = "target description input",
-                            tint = Purple40,
-                            modifier = Modifier.size(30.dp)
-                        )
                         Text(
-                            "Промежуточные цели (шаги)",
-                            style = TextStyle(
-                                fontWeight = FontWeight(400), fontSize = 18.sp, color = Color.Black
-                            ),
+                            "${state.value.steps.size + 1}",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = MainBlue,
+                            modifier = Modifier.padding(horizontal = 14.dp)
+                        )
+                        VerticalDivider(modifier = Modifier.height(56.dp))
+                        TextField(
+                            value = state.value.newStepName,
+                            onValueChange = { viewModel.processIntent(AddGoalIntent.ChangeNewStepName(it)) },
+                            placeholder = { Text("Введите шаг...", color = Color.Gray) },
+                            trailingIcon = {
+                                IconButton(onClick = {
+                                    viewModel.processIntent(AddGoalIntent.AddNewStep(state.value.newStepName))
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = "add step",
+                                        tint = MainBlue,
+                                        modifier = Modifier.size(26.dp)
+                                    )
+                                }
+                            },
+                            modifier = Modifier
+                                .height(56.dp)
+                                .fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = TextFieldDefaults.colors(
+                                unfocusedIndicatorColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                disabledIndicatorColor = Color.Transparent,
+                                unfocusedContainerColor = Color.White,
+                                focusedContainerColor = Color.White
+                            )
                         )
                     }
-
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        val stepError = state.value.newStepNameError
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
+                    if (stepError != null) {
+                        Text(
+                            text = stepError,
+                            color = Color.Red,
+                            fontSize = 12.sp,
                             modifier = Modifier
-                                .background(Color.White)
-                                .border(
-                                    1.dp,
-                                    if (stepError != null) Color.Red else Color.LightGray,
-                                    RoundedCornerShape(10.dp)
-                                )
-                        ) {
-                            Text(
-                                "${state.value.steps.size + 1} шаг", style = TextStyle(
-                                    fontWeight = FontWeight(900),
-                                    fontSize = 18.sp,
-                                    color = Color.Black
-                                ), modifier = Modifier.padding(10.dp)
-                            )
-                            VerticalDivider(modifier = Modifier.height(70.dp))
-
-                            TextField(
-                                value = state.value.newStepName,
-                                trailingIcon = {
-                                    IconButton(onClick = {
-                                        viewModel.processIntent(
-                                            AddGoalIntent.AddNewStep(state.value.newStepName)
-                                        )
-                                    }) {
-                                        Icon(
-                                            imageVector = Icons.Default.Add,
-                                            contentDescription = "add step",
-                                            tint = MainBlue,
-                                            modifier = Modifier.size(30.dp)
-                                        )
-                                    }
-                                },
-                                onValueChange = {
-                                    viewModel.processIntent(AddGoalIntent.ChangeNewStepName(it))
-                                },
-                                placeholder = {
-                                    Text(
-                                        "Введите подцель...", style = TextStyle(
-                                            fontWeight = FontWeight(400),
-                                            fontSize = 18.sp,
-                                            color = Color.Gray
-                                        )
-                                    )
-                                },
-                                modifier = Modifier
-                                    .height(70.dp)
-                                    .padding(vertical = 10.dp)
-                                    .fillMaxWidth(),
-                                shape = RoundedCornerShape(10.dp),
-                                colors = TextFieldDefaults.colors(
-                                    unfocusedIndicatorColor = Color.Transparent,
-                                    focusedIndicatorColor = Color.Transparent,
-                                    disabledIndicatorColor = Color.Transparent,
-                                    unfocusedContainerColor = Color.White,
-                                    focusedContainerColor = Color.White,
-                                )
-                            )
-                        }
-                        if (stepError != null) {
-                            Text(
-                                text = stepError,
-                                color = Color.Red,
-                                fontSize = 13.sp,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(start = 4.dp, top = 2.dp)
-                            )
-                        }
+                                .fillMaxWidth()
+                                .padding(start = 4.dp, top = 4.dp)
+                        )
                     }
                 }
             }
 
+            // ── Steps list (reorderable) ──────────────────────────────────
             items(state.value.steps, key = { it.id }) { step ->
                 ReorderableItem(
                     reorderState,
@@ -475,331 +387,193 @@ fun AddGoalScreen(onBack: () -> Unit) {
                 ) { isDragging ->
                     StepCard(
                         step = step,
-                        {
-                            viewModel.processIntent(
-                                AddGoalIntent.DeleteStep(
-                                    step.id,
-                                    step.position
-                                )
-                            )
-                        },
+                        { viewModel.processIntent(AddGoalIntent.DeleteStep(step.id, step.position)) },
                         modifier = Modifier
                             .shadow(if (isDragging) 8.dp else 2.dp)
                             .animateItemPlacement()
-//                            .pointerInput(Unit) {
-//                                detectDragGestures (
-//                                    onDragStart = {
-//                                    },
-//                                    onDrag = { _, _ -> }, // нужно для захвата
-//                                    onDragEnd = {},
-//                                    onDragCancel = {}
-//                                )
-//                            }
                     )
                 }
             }
 
-
+            // ── Complexity ───────────────────────────────────────────────
             item {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth(0.95f)
-                        .padding(top = 10.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.select_complexity_icon),
-                        contentDescription = "awards input",
-                        tint = MainBlue,
-                        modifier = Modifier.size(30.dp)
+                GoalSectionCard {
+                    GoalSectionHeader(
+                        icon = {
+                            Icon(
+                                painterResource(R.drawable.select_complexity_icon), null,
+                                tint = MainBlue, modifier = Modifier.size(22.dp)
+                            )
+                        },
+                        title = "Сложность"
                     )
                     Text(
-                        "Сложность", style = TextStyle(
-                            fontWeight = FontWeight(400), fontSize = 18.sp, color = Color.Black
-                        )
-                    )
-                }
-
-                Text(
-                    text = "В зависимости от выбранной сложности, при выполнении цели полностью, будет начисленна награда, чем вышел сложность, тем выше награда.",
-                    style = TextStyle(
-                        fontWeight = FontWeight(400),
-                        fontSize = 18.sp,
-                        color = Color.Black,
-                        textAlign = TextAlign.Center
-                    ),
-                    modifier = Modifier.padding(10.dp)
-                )
-            }
-            item {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth(0.95f)
-                        .padding(bottom = 20.dp),
-                    horizontalArrangement = Arrangement.Absolute.SpaceAround
-
-                ) {
-
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        when (state.value.complexity) {
-                            GoalComplexity.EASY -> {
-                                IconButton(
-                                    onClick = {
-                                        viewModel.processIntent(
-                                            AddGoalIntent.SelectGoalComplexity(
-                                                GoalComplexity.EASY
-                                            )
-                                        )
-                                    }, modifier = Modifier.size(60.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.complexity_icon),
-                                        contentDescription = "",
-                                        tint = DarkGreen,
-                                        modifier = Modifier.size(100.dp)
-                                    )
-                                }
-                                Text(
-                                    text = "Легкая", style = TextStyle(
-                                        fontWeight = FontWeight(900),
-                                        fontSize = 18.sp,
-                                        color = DarkGreen
-                                    )
-                                )
-
-                            }
-
-                            else -> {
-                                IconButton(onClick = {
-                                    viewModel.processIntent(
-                                        AddGoalIntent.SelectGoalComplexity(
-                                            GoalComplexity.EASY
-                                        )
-                                    )
-                                }) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.complexity_icon),
-                                        contentDescription = "",
-                                        tint = DarkGreen,
-                                        modifier = Modifier.size(80.dp)
-                                    )
-                                }
-                                Text(
-                                    text = "Легкая", style = TextStyle(
-                                        fontWeight = FontWeight(900),
-                                        fontSize = 16.sp,
-                                        color = DarkGreen
-                                    )
-                                )
-                            }
-                        }
-
-
-                    }
-
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        when (state.value.complexity) {
-                            GoalComplexity.MEDIUM -> {
-                                IconButton(
-                                    onClick = {
-                                        viewModel.processIntent(
-                                            AddGoalIntent.SelectGoalComplexity(
-                                                GoalComplexity.MEDIUM
-                                            )
-                                        )
-                                    },
-                                    modifier = Modifier.size(60.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.complexity_icon),
-                                        contentDescription = "",
-                                        tint = CoinColor,
-                                        modifier = Modifier.size(100.dp)
-                                    )
-                                }
-                                Text(
-                                    text = "Средняя", style = TextStyle(
-                                        fontWeight = FontWeight(900),
-                                        fontSize = 18.sp,
-                                        color = CoinColor
-                                    )
-                                )
-                            }
-
-                            else -> {
-                                IconButton(
-                                    onClick = {
-                                        viewModel.processIntent(
-                                            AddGoalIntent.SelectGoalComplexity(
-                                                GoalComplexity.MEDIUM
-                                            )
-                                        )
-                                    },
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.complexity_icon),
-                                        contentDescription = "",
-                                        tint = CoinColor,
-                                        modifier = Modifier.size(80.dp)
-                                    )
-                                }
-                                Text(
-                                    text = "Средняя", style = TextStyle(
-                                        fontWeight = FontWeight(900),
-                                        fontSize = 16.sp,
-                                        color = CoinColor
-                                    )
-                                )
-                            }
-                        }
-
-
-                    }
-
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        when (state.value.complexity) {
-                            GoalComplexity.HARD -> {
-                                IconButton(onClick = {
-                                    viewModel.processIntent(
-                                        AddGoalIntent.SelectGoalComplexity(
-                                            GoalComplexity.HARD
-                                        )
-                                    )
-                                }, modifier = Modifier.size(60.dp)) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.complexity_icon),
-                                        contentDescription = "",
-                                        tint = Color.Red,
-                                        modifier = Modifier.size(100.dp)
-                                    )
-                                }
-                                Text(
-                                    text = "Сложная", style = TextStyle(
-                                        fontWeight = FontWeight(900),
-                                        fontSize = 18.sp,
-                                        color = Color.Red
-                                    )
-                                )
-                            }
-
-                            else -> {
-                                IconButton(onClick = {
-                                    viewModel.processIntent(
-                                        AddGoalIntent.SelectGoalComplexity(
-                                            GoalComplexity.HARD
-                                        )
-                                    )
-                                }) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.complexity_icon),
-                                        contentDescription = "",
-                                        tint = Color.Red,
-                                        modifier = Modifier.size(80.dp)
-                                    )
-                                }
-                                Text(
-                                    text = "Сложная", style = TextStyle(
-                                        fontWeight = FontWeight(900),
-                                        fontSize = 16.sp,
-                                        color = Color.Red
-                                    )
-                                )
-                            }
-                        }
-
-
-                    }
-                }
-
-
-            }
-
-            item {
-                if (state.value.complexity != null) {
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth(0.95f)
-                            .padding(top = 10.dp)
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.award_img),
-                            contentDescription = "awards input",
-                            modifier = Modifier.size(30.dp)
-                        )
-                        Text(
-                            "Награда", style = TextStyle(
-                                fontWeight = FontWeight(400), fontSize = 18.sp, color = Color.Black
-                            )
-                        )
-                    }
-
-                    Text(
-                        text = "Награда за цель определяется ее уровнем сложности. Для текущей выбранной сложности награда:",
-                        style = TextStyle(
-                            fontWeight = FontWeight(400),
-                            fontSize = 18.sp,
-                            color = Color.Black,
-                            textAlign = TextAlign.Center
-                        ),
-                        modifier = Modifier.padding(10.dp)
+                        "От сложности зависит награда за выполнение цели",
+                        fontSize = 13.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(bottom = 12.dp)
                     )
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier
-                            .fillMaxWidth(0.5f)
-                            .bringIntoViewRequester(requester)
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(10.dp)
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.xp_img),
-                                contentDescription = "xp",
-                                modifier = Modifier.size(30.dp)
-                            )
-                            Text(
-                                "${state.value.complexity?.xp}", style = TextStyle(
-                                    color = Color.DarkGray,
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight(900),
-                                    textAlign = TextAlign.Center
+                        ComplexityCard(
+                            label = "Легкая",
+                            color = DarkGreen,
+                            isSelected = state.value.complexity == GoalComplexity.EASY,
+                            modifier = Modifier.weight(1f),
+                            onClick = { viewModel.processIntent(AddGoalIntent.SelectGoalComplexity(GoalComplexity.EASY)) }
+                        )
+                        ComplexityCard(
+                            label = "Средняя",
+                            color = CoinColor,
+                            isSelected = state.value.complexity == GoalComplexity.MEDIUM,
+                            modifier = Modifier.weight(1f),
+                            onClick = { viewModel.processIntent(AddGoalIntent.SelectGoalComplexity(GoalComplexity.MEDIUM)) }
+                        )
+                        ComplexityCard(
+                            label = "Сложная",
+                            color = Color.Red,
+                            isSelected = state.value.complexity == GoalComplexity.HARD,
+                            modifier = Modifier.weight(1f),
+                            onClick = { viewModel.processIntent(AddGoalIntent.SelectGoalComplexity(GoalComplexity.HARD)) }
+                        )
+                    }
+                }
+            }
+
+            // ── Reward (shown when complexity is selected) ────────────────
+            item {
+                val complexity = state.value.complexity
+                if (complexity != null) {
+                    GoalSectionCard {
+                        GoalSectionHeader(
+                            icon = {
+                                Image(
+                                    painterResource(R.drawable.award_img), null,
+                                    modifier = Modifier.size(22.dp)
                                 )
-                            )
-                        }
+                            },
+                            title = "Награда за цель"
+                        )
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(10.dp)
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Image(
-                                painter = painterResource(R.drawable.coin_img),
-                                contentDescription = "coins",
-                                modifier = Modifier.size(30.dp)
-                            )
-                            Text(
-                                "${state.value.complexity?.coins}", style = TextStyle(
-                                    color = Color.Black,
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight(900),
-                                    textAlign = TextAlign.Center
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color(0xFFEEF6FF))
+                                    .padding(horizontal = 12.dp, vertical = 10.dp)
+                            ) {
+                                Image(
+                                    painter = painterResource(R.drawable.xp_img),
+                                    contentDescription = "xp",
+                                    modifier = Modifier.size(24.dp)
                                 )
-                            )
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    "${complexity.xp} XP",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MainBlue
+                                )
+                            }
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(CoinColor.copy(alpha = 0.12f))
+                                    .padding(horizontal = 12.dp, vertical = 10.dp)
+                            ) {
+                                Image(
+                                    painter = painterResource(R.drawable.coin_img),
+                                    contentDescription = "coins",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    "${complexity.coins}",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFB8860B)
+                                )
+                            }
                         }
                     }
-
-
                 }
             }
         }
-
-
     }
-
-
 }
 
+@Composable
+private fun ComplexityCard(
+    label: String,
+    color: Color,
+    isSelected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        border = if (isSelected) BorderStroke(2.dp, color) else BorderStroke(1.dp, LightGray),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) color.copy(alpha = 0.08f) else Color(0xFFFAFAFA)
+        ),
+        elevation = CardDefaults.cardElevation(if (isSelected) 4.dp else 0.dp)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.complexity_icon),
+                contentDescription = label,
+                tint = color,
+                modifier = Modifier.size(if (isSelected) 44.dp else 36.dp)
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                color = color,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
 
+@Composable
+private fun GoalSectionCard(content: @Composable () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth(0.95f)
+            .padding(vertical = 6.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            content()
+        }
+    }
+}
+
+@Composable
+private fun GoalSectionHeader(icon: @Composable () -> Unit, title: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        icon()
+        Spacer(Modifier.width(8.dp))
+        Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.Black)
+    }
+    Spacer(Modifier.height(8.dp))
+}
