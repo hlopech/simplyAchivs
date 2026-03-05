@@ -7,20 +7,26 @@ data class Event(
     val id: UUID,
     val userId: UUID,
     val type: EventType,
-    val relatedEntityId: UUID?,
-    val createdAt: Instant
-){
+    val relatedEntityId: UUID? = null,
+    val relatedEntityType: String? = null, // "GOAL" | "TASK" | "STEP" | "AWARD"
+    val metadata: String? = null,          // JSON: {"complexity":"HARD","xp":300}
+    val createdAt: Instant,
+) {
     companion object {
         fun now(
             userId: UUID,
             type: EventType,
-            relatedEntityId: UUID? = null
-        ): Event = Event(
+            relatedEntityId: UUID? = null,
+            relatedEntityType: String? = null,
+            metadata: String? = null,
+        ) = Event(
             id = UUID.randomUUID(),
             userId = userId,
             type = type,
             relatedEntityId = relatedEntityId,
-            createdAt = Instant.now()
+            relatedEntityType = relatedEntityType,
+            metadata = metadata,
+            createdAt = Instant.now(),
         )
     }
 }
