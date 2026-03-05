@@ -7,7 +7,12 @@ import com.example.simplyachivs.domain.model.task.Task
 import com.example.simplyachivs.domain.repository.SessionRepository
 import com.example.simplyachivs.domain.usecase.progress.GetAwadForTaskUseCase
 import com.example.simplyachivs.domain.usecase.progress.GetUserProgressUseCase
+import com.example.simplyachivs.domain.usecase.progress.RevokeTaskRewardUseCase
 import com.example.simplyachivs.domain.usecase.progress.UpdateStreakUseCase
+import com.example.simplyachivs.domain.model.event.Event
+import com.example.simplyachivs.domain.model.event.EventType
+import com.example.simplyachivs.domain.service.AchievementNotifier
+import com.example.simplyachivs.domain.usecase.event.TrackEventUseCase
 import com.example.simplyachivs.domain.usecase.task.AddTaskUseCase
 import com.example.simplyachivs.domain.usecase.task.CompleteTaskUseCase
 import com.example.simplyachivs.domain.usecase.task.GetTasksUseCase
@@ -35,7 +40,10 @@ class HomeViewModel @Inject constructor(
     private val loadUserProgressUseCase: GetUserProgressUseCase,
     private val updateStreakUseCase: UpdateStreakUseCase,
     private val getAwadForTaskUseCase: GetAwadForTaskUseCase,
-    private val resetDailyTasksUseCase: ResetDailyTasksUseCase
+    private val revokeTaskRewardUseCase: RevokeTaskRewardUseCase,
+    private val resetDailyTasksUseCase: ResetDailyTasksUseCase,
+    private val trackEventUseCase: TrackEventUseCase,
+    private val achievementNotifier: AchievementNotifier,
 ) : ViewModel() {
     private val _state = MutableStateFlow<HomeUiState>(HomeUiState())
     val state = _state.asStateFlow()
@@ -126,11 +134,9 @@ class HomeViewModel @Inject constructor(
                                 else task
                             })
                         }
-
+                        val userId = _state.value.user?.id ?: return@onSuccess
                         if (isCompleting) {
                             val currentProgress = _state.value.userProgress ?: return@onSuccess
-                            val userId = _state.value.user?.id ?: return@onSuccess
-
                             updateStreakUseCase(userId, currentProgress)
                             loadUserProgressUseCase(userId).onSuccess { progressAfterStreak ->
                                 getAwadForTaskUseCase(userId, intent.task.complexity, progressAfterStreak).onSuccess {
@@ -139,6 +145,28 @@ class HomeViewModel @Inject constructor(
                                     }
                                 }
                             }
+                            trackEventUseCase(Event.now(
+                                userId = userId,
+                                type = EventType.TASK_COMPLETED,
+                                relatedEntityId = intent.task.id,
+                                relatedEntityType = "TASK",
+                                metadata = intent.task.complexity.name,
+                            ))
+                            achievementNotifier.checkForNewAchievements(userId)
+                        } else {
+                            val currentProgress = _state.value.userProgress ?: return@onSuccess
+                            revokeTaskRewardUseCase(intent.task.complexity, currentProgress).onSuccess {
+                                loadUserProgressUseCase(userId).onSuccess { fresh ->
+                                    _state.update { it.copy(userProgress = fresh) }
+                                }
+                            }
+                            trackEventUseCase(Event.now(
+                                userId = userId,
+                                type = EventType.TASK_UNCOMPLETED,
+                                relatedEntityId = intent.task.id,
+                                relatedEntityType = "TASK",
+                            ))
+                            achievementNotifier.checkForNewAchievements(userId)
                         }
                     }
                 }
