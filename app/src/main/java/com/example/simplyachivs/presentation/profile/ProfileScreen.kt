@@ -38,7 +38,13 @@ import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onBack: () -> Unit, onOpenSettings: () -> Unit) {
+fun ProfileScreen(
+    onBack: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onOpenAchievements: () -> Unit,
+    onOpenAnalytics: () -> Unit,
+    onOpenAsceticism: () -> Unit,
+) {
 
     val viewModel: ProfileViewModel = hiltViewModel()
 
@@ -53,10 +59,13 @@ fun ProfileScreen(onBack: () -> Unit, onOpenSettings: () -> Unit) {
             when (effect) {
                 ProfileEffect.GoBack -> onBack()
                 ProfileEffect.HideDialog -> showDialog = false
-                is ProfileEffect.NavigateToOption -> TODO()
-                is ProfileEffect.ShowError -> TODO()
+                is ProfileEffect.NavigateToOption -> { /* unused */ }
+                is ProfileEffect.ShowError -> { /* TODO: show snackbar */ }
                 is ProfileEffect.ShowDialog -> showDialog = true
                 ProfileEffect.NavigateToSettings -> onOpenSettings()
+                ProfileEffect.NavigateToAchievements -> onOpenAchievements()
+                ProfileEffect.NavigateToAnalytics -> onOpenAnalytics()
+                ProfileEffect.NavigateToAsceticism -> onOpenAsceticism()
 
             }
         }
@@ -110,7 +119,10 @@ fun ProfileScreen(onBack: () -> Unit, onOpenSettings: () -> Unit) {
             ProfileInfoSection(state.value.user, state.value.progress)
             Spacer(Modifier.height(0.dp))
             ProfileOptions(
-                onSettingsClick = { viewModel.processIntent(ProfileIntent.OpenSettings) }
+                onSettingsClick = { viewModel.processIntent(ProfileIntent.OpenSettings) },
+                onAchievementsClick = { viewModel.processIntent(ProfileIntent.OpenAchievements) },
+                onAnalyticsClick = { viewModel.processIntent(ProfileIntent.OpenAnalytics) },
+                onAsceticismClick = { viewModel.processIntent(ProfileIntent.OpenAsceticism) },
             )
         }
 

@@ -14,4 +14,7 @@ sealed interface ProfileIntent {
     data class SelectOption(val optionId: Int) : ProfileIntent
 
     object OpenSettings : ProfileIntent
+    object OpenAchievements : ProfileIntent
+    object OpenAnalytics : ProfileIntent
+    object OpenAsceticism : ProfileIntent
 }

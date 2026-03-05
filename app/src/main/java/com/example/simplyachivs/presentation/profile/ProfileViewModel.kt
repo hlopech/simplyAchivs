@@ -84,6 +84,9 @@ class ProfileViewModel @Inject constructor(
             is ProfileIntent.SelectOption -> TODO()
 
             ProfileIntent.OpenSettings -> sendEffect(ProfileEffect.NavigateToSettings)
+            ProfileIntent.OpenAchievements -> sendEffect(ProfileEffect.NavigateToAchievements)
+            ProfileIntent.OpenAnalytics -> sendEffect(ProfileEffect.NavigateToAnalytics)
+            ProfileIntent.OpenAsceticism -> sendEffect(ProfileEffect.NavigateToAsceticism)
         }
 
 

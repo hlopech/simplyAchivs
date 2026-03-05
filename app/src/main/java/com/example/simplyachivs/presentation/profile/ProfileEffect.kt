@@ -7,4 +7,7 @@ sealed interface ProfileEffect {
     object ShowDialog: ProfileEffect
     object HideDialog: ProfileEffect
     object NavigateToSettings : ProfileEffect
+    object NavigateToAchievements : ProfileEffect
+    object NavigateToAnalytics : ProfileEffect
+    object NavigateToAsceticism : ProfileEffect
 }
